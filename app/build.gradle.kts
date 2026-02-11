@@ -2,7 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
+
 
 
 
@@ -40,9 +42,6 @@ android {
         compose = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
 }
 
 dependencies {
@@ -60,6 +59,18 @@ dependencies {
 
     // Core
     implementation("androidx.core:core-ktx:1.13.1")
+
+
+    //coneccion con supabase
+
+    implementation(libs.supabase.kt)
+    implementation(libs.gotrue.kt)
+    implementation(libs.postgrest.kt)
+    implementation(libs.storage.kt)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.kotlinx.serialization.json)
+
+
 
     // Debug (opcional pero útil)
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
