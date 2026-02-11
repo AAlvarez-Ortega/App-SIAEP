@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.app_sisaep.model.supabase.estatus
+import com.example.app_sisaep.viewModel.estatus
 import com.example.app_sisaep.view.navigation.Routes
 import kotlinx.coroutines.launch
 

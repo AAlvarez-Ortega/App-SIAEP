@@ -1,7 +1,8 @@
-package com.example.app_sisaep.model.supabase
+package com.example.app_sisaep.viewModel
 
 import android.content.Context
 import androidx.core.content.edit
+import com.example.app_sisaep.viewModel.consultaas
 
 object estatus {
 

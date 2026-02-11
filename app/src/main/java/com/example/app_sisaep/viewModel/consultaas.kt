@@ -1,9 +1,9 @@
-package com.example.app_sisaep.model.supabase
-
+package com.example.app_sisaep.viewModel
 
 import com.example.app_sisaep.model.dto.EscuelaDto
 import com.example.app_sisaep.model.dto.SolicitudIdDto
 import com.example.app_sisaep.model.dto.SolicitudInsertDto
+import com.example.app_sisaep.model.supabase.SupabaseConnection
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Order
 
@@ -52,4 +52,21 @@ object consultaas {
 
         return res.isNotEmpty()
     }
+
+    suspend fun existeSolicitud(numeroBoleta: String, curp: String): Boolean {
+        val result = SupabaseConnection.client
+            .from("solicitudes")
+            .select {
+                filter {
+                    or {
+                        eq("numero_boleta", numeroBoleta)
+                        eq("curp", curp)
+                    }
+                }
+            }
+            .decodeList<SolicitudIdDto>()  // solo necesitamos el id
+
+        return result.isNotEmpty()
+    }
+
 }
