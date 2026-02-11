@@ -116,7 +116,7 @@ fun PreRegistroScreen(navController: NavController) {
             OutlinedTextField(
                 value = numeroBoleta,
                 onValueChange = { numeroBoleta = it },
-                label = { Text("Número de boleta") },
+                label = { Text("Número de boleta o empleado") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 modifier = Modifier.fillMaxWidth()
             )
