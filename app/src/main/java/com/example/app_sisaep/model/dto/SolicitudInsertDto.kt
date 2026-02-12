@@ -7,10 +7,20 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SolicitudInsertDto(
     val nombre: String,
-    @SerialName("apellido_paterno") val apellidoPaterno: String,
-    @SerialName("apellido_materno") val apellidoMaterno: String,
-    @SerialName("numero_boleta") val numeroBoleta: String,
+
+    @SerialName("apellido_paterno")
+    val apellidoPaterno: String,
+
+    @SerialName("apellido_materno")
+    val apellidoMaterno: String,
+
+    // ✅ CAMBIO: antes "numero_boleta"
+    @SerialName("boleta_o_empleado")
+    val boletaOEmpleado: String,
+
     val correo: String,
     val curp: String,
-    @SerialName("escuela_id") val escuelaId: String
+
+    @SerialName("escuela_id")
+    val escuelaId: String
 )

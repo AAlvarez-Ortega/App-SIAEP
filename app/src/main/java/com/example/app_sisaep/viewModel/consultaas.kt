@@ -53,20 +53,27 @@ object consultaas {
         return res.isNotEmpty()
     }
 
-    suspend fun existeSolicitud(numeroBoleta: String, curp: String): Boolean {
+    /**
+     * ✅ CAMBIO: antes numeroBoleta + columna numero_boleta
+     * Ahora: boletaOEmpleado + columna boleta_o_empleado
+     *
+     * Nota: tu lógica actual usa OR (si coincide boleta/empleado O coincide curp).
+     * Eso replica tu comportamiento previo.
+     */
+    suspend fun existeSolicitud(boletaOEmpleado: String, curp: String): Boolean {
         val result = SupabaseConnection.client
             .from("solicitudes")
             .select {
                 filter {
                     or {
-                        eq("numero_boleta", numeroBoleta)
+                        eq("boleta_o_empleado", boletaOEmpleado)
                         eq("curp", curp)
                     }
                 }
+                limit(1)
             }
-            .decodeList<SolicitudIdDto>()  // solo necesitamos el id
+            .decodeList<SolicitudIdDto>() // solo necesitamos el id
 
         return result.isNotEmpty()
     }
-
 }

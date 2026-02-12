@@ -57,7 +57,10 @@ fun PreRegistroScreen(navController: NavController) {
     var nombre by remember { mutableStateOf("") }
     var apellidoPaterno by remember { mutableStateOf("") }
     var apellidoMaterno by remember { mutableStateOf("") }
-    var numeroBoleta by remember { mutableStateOf("") }
+
+    // ✅ CAMBIO: antes numeroBoleta
+    var boletaOEmpleado by remember { mutableStateOf("") }
+
     var correo by remember { mutableStateOf("") }
     var curp by remember { mutableStateOf("") }
 
@@ -98,8 +101,13 @@ fun PreRegistroScreen(navController: NavController) {
                 if (apellidoMaterno.isBlank()) {
                     errApMat = "Requerido"; ok = false
                 }
-                if (numeroBoleta.isBlank()) {
+
+                val be = boletaOEmpleado.trim()
+                if (be.isBlank()) {
                     errBoleta = "Requerido"; ok = false
+                } else if (!be.all { it.isDigit() } || be.length !in 8..10) {
+                    errBoleta = "Debe tener 8, 9 o 10 dígitos"
+                    ok = false
                 }
             }
 
@@ -296,8 +304,11 @@ fun PreRegistroScreen(navController: NavController) {
                                     Spacer(Modifier.height(10.dp))
 
                                     OutlinedTextField(
-                                        value = numeroBoleta,
-                                        onValueChange = { numeroBoleta = it; errBoleta = null },
+                                        value = boletaOEmpleado,
+                                        onValueChange = { input ->
+                                            boletaOEmpleado = input.filter { it.isDigit() }.take(10)
+                                            errBoleta = null
+                                        },
                                         label = { Text("Boleta o empleado") },
                                         modifier = Modifier.fillMaxWidth(),
                                         singleLine = true,
@@ -305,7 +316,7 @@ fun PreRegistroScreen(navController: NavController) {
                                         supportingText = { errBoleta?.let { Text(it) } },
                                         colors = fieldColors,
                                         keyboardOptions = KeyboardOptions(
-                                            keyboardType = KeyboardType.Text,
+                                            keyboardType = KeyboardType.Number,
                                             imeAction = ImeAction.Done
                                         ),
                                         keyboardActions = KeyboardActions(onDone = {
@@ -431,9 +442,10 @@ fun PreRegistroScreen(navController: NavController) {
 
                             scope.launch {
                                 try {
-                                    // 🔎 Verificamos si ya existe (boleta + curp)
+                                    // 🔎 Verificamos si ya existe (boleta/empleado + curp)
+                                    // ⚠️ Requiere actualizar consultaas.existeSolicitud(...) para usar boleta_o_empleado
                                     val yaExiste = consultaas.existeSolicitud(
-                                        numeroBoleta = numeroBoleta.trim(),
+                                        boletaOEmpleado = boletaOEmpleado.trim(),
                                         curp = curp.trim()
                                     )
 
@@ -446,7 +458,7 @@ fun PreRegistroScreen(navController: NavController) {
                                         nombre = nombre.trim(),
                                         apellidoPaterno = apellidoPaterno.trim(),
                                         apellidoMaterno = apellidoMaterno.trim(),
-                                        numeroBoleta = numeroBoleta.trim(),
+                                        boletaOEmpleado = boletaOEmpleado.trim(),
                                         correo = correo.trim(),
                                         curp = curp.trim(),
                                         escuelaId = escuelaSeleccionada!!.id
