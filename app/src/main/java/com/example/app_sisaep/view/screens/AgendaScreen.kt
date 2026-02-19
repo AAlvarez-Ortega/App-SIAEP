@@ -1,27 +1,21 @@
 package com.example.app_sisaep.view.screens
-
-
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.app_sisaep.R
 import com.example.app_sisaep.view.navigation.Routes
-import com.example.app_sisaep.view.screens.noticias.InicioNoticias
-
 
 @Composable
-fun HomeScreen(navController: NavController) {
-
+fun AgendaScreen(navController: NavController) {
     var selectedIndex by remember { mutableIntStateOf(0) }
 
     val navItems = listOf(
@@ -32,9 +26,8 @@ fun HomeScreen(navController: NavController) {
     )
 
     AppScaffold(
-        selectedIndex = selectedIndex,
+        selectedIndex = 2,
         onItemSelected = { index ->
-            selectedIndex = index
             when (index) {
                 0 -> navController.navigate(Routes.Home)
                 1 -> navController.navigate(Routes.Calendario)
@@ -60,9 +53,16 @@ fun HomeScreen(navController: NavController) {
         },
 
         navItems = navItems
-    ) {innerPadding ->
-        InicioNoticias(
-            modifier = Modifier.padding(paddingValues = innerPadding)
-        )
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("Agenda")
+        }
     }
 }

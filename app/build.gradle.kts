@@ -43,7 +43,6 @@ android {
     }
 
 }
-
 dependencies {
 
     // Navigation
@@ -56,23 +55,29 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
+    //QR
+    implementation(libs.zxing.core)
     // Core
     implementation("androidx.core:core-ktx:1.13.1")
 
-
-    //coneccion con supabase
-
-    implementation(libs.supabase.kt)
-    implementation(libs.gotrue.kt)
+    // ✅ Supabase-kt (core + módulos correctos)
+    implementation(libs.supabase.kt)     // <-- IMPORTANTE (createSupabaseClient)
+    implementation(libs.gotrue.kt)      // <-- IMPORTANTE (auth / Email provider)
     implementation(libs.postgrest.kt)
     implementation(libs.storage.kt)
+    implementation(libs.realtime.kt)    // opcional, solo si lo usas
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // ✅ Ktor engine (solo 1)
     implementation(libs.ktor.client.okhttp)
+
+    // Serialization
     implementation(libs.kotlinx.serialization.json)
 
-
-
-    // Debug (opcional pero útil)
+    // Debug
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.8")
 }

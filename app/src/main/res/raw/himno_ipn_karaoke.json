@@ -1,0 +1,32 @@
+[
+  { "timeMs": 0, "line": "Himno Politecnico" },
+  { "timeMs": 8000, "line": "Politécnico, fragua encendida" },
+  { "timeMs": 12000, "line": "con la chispa del genio creador" },
+  { "timeMs": 16300, "line": "en ti forja su nueva estructura" },
+  { "timeMs": 20100, "line": "nuestra noble y pujante nación." },
+  { "timeMs": 24100, "line": "En la aurora de un día venturoso" },
+  { "timeMs": 27900, "line": "te dio vida la Revolución;" },
+  { "timeMs": 31700, "line": "una estrella te puso en las manos," },
+  { "timeMs": 35700, "line": "¡que no apague su limpio fulgor!" },
+
+  { "timeMs": 39700, "line": "(CORO)" },
+  { "timeMs": 39700, "line": "Su libertad México crea," },
+  { "timeMs": 43700, "line": "surge la Patria nace la luz;" },
+  { "timeMs": 47400, "line": "nos convoca tu voz, Politécnico," },
+  { "timeMs": 51000, "line": "nos conduce tu amor, juventud." },
+
+  { "timeMs": 55000, "line": "Mueve al hombre tu fe constructiva" },
+  { "timeMs": 58600, "line": "se oye el ritmo de su despertar," },
+  { "timeMs": 62600, "line": "sinfonía de las urbes fabriles" },
+  { "timeMs": 66600, "line": "alma agreste de un himno rural." },
+  { "timeMs": 70600, "line": "Corazón valeroso y ardiente" },
+  { "timeMs": 74600, "line": "que edificas baluarte de paz" },
+  { "timeMs": 78600, "line": "solidaria su acción con tus filas" },
+  { "timeMs": 82600, "line": "vive el pueblo tu hermosa verdad." },
+
+  { "timeMs": 86600, "line": "(CORO)" },
+  { "timeMs": 86600, "line": "Su libertad México crea," },
+  { "timeMs": 90600, "line": "surge la Patria nace la luz;" },
+  { "timeMs": 94300, "line": "nos convoca tu voz, Politécnico," },
+  { "timeMs": 97900, "line": "nos conduce tu amor, juventud." }
+]

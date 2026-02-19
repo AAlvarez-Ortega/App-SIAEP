@@ -1,5 +1,6 @@
 package com.example.app_sisaep.view.screens
 
+import android.util.Patterns
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,8 +16,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.app_sisaep.viewModel.estatus
 import com.example.app_sisaep.view.navigation.Routes
+import com.example.app_sisaep.viewModel.AuthApp
+import com.example.app_sisaep.viewModel.RecordarSesion
+import com.example.app_sisaep.viewModel.estatus
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,21 +29,43 @@ fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var boleta by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     var solicitudEnProceso by remember { mutableStateOf(false) }
-    var checkingStatus by remember { mutableStateOf(true) } // para mostrar cargando
+    var checkingStatus by remember { mutableStateOf(true) }
     var statusError by remember { mutableStateOf<String?>(null) }
 
-    // Consulta estatus al abrir la pantalla
+    var isLoggingIn by remember { mutableStateOf(false) }
+    var loginError by remember { mutableStateOf<String?>(null) }
+
+    fun isValidEmail(value: String): Boolean {
+        val v = value.trim()
+        return v.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(v).matches()
+    }
+
+    // ✅ 1) Revisar sesión REAL (Supabase) al abrir la pantalla
     LaunchedEffect(Unit) {
+        // Espera un poco a que Supabase restaure sesión desde storage (si existe)
+        val haySesion = try {
+            RecordarSesion.esperarSesion(timeoutMs = 2500L, tickMs = 150L)
+        } catch (_: Exception) {
+            false
+        }
+
+        if (haySesion) {
+            navController.navigate(Routes.Home) {
+                popUpTo(Routes.Login) { inclusive = true }
+            }
+            return@LaunchedEffect
+        }
+
+        // ✅ 2) Si NO hay sesión, consulta estatus (como antes)
         checkingStatus = true
         statusError = null
         try {
             solicitudEnProceso = estatus.haySolicitudEnProceso(context)
         } catch (e: Exception) {
-            // si falla la consulta, no bloqueamos la app, solo avisamos
             statusError = e.message ?: "No se pudo validar el estatus de la solicitud"
             solicitudEnProceso = false
         } finally {
@@ -48,7 +73,7 @@ fun LoginScreen(navController: NavController) {
         }
     }
 
-    val bloqueado = solicitudEnProceso || checkingStatus
+    val bloqueado = solicitudEnProceso || checkingStatus || isLoggingIn
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -78,7 +103,6 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ✅ Aviso de estatus
             if (checkingStatus) {
                 AssistChip(
                     onClick = {},
@@ -119,21 +143,32 @@ fun LoginScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
+            loginError?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = boleta,
-                onValueChange = { boleta = it },
-                label = { Text("Número de boleta") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Correo") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 enabled = !bloqueado,
                 shape = RoundedCornerShape(12.dp),
+                isError = email.isNotBlank() && !isValidEmail(email),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Color(0xFF7A003C),
                     unfocusedBorderColor = Color.LightGray,
-                    cursorColor = Color(0xFF7A003C)
+                    cursorColor = Color(0xFF7A003C),
+                    errorBorderColor = MaterialTheme.colorScheme.error
                 )
             )
 
@@ -160,9 +195,57 @@ fun LoginScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    // SOLO UI: por ahora navegamos directo a Home
-                    navController.navigate(Routes.Home) {
-                        popUpTo(Routes.Login) { inclusive = true }
+                    scope.launch {
+                        loginError = null
+
+                        val emailClean = email.trim().lowercase()
+                        val pass = password
+
+                        if (!isValidEmail(emailClean)) {
+                            loginError = "Ingresa un correo válido."
+                            return@launch
+                        }
+                        if (pass.isBlank()) {
+                            loginError = "Ingresa tu contraseña."
+                            return@launch
+                        }
+
+                        isLoggingIn = true
+                        try {
+                            val result = AuthApp.login(
+                                userEmail = emailClean,
+                                userPassword = pass
+                            )
+
+                            result.fold(
+                                onSuccess = {
+                                    // ✅ Ya NO guardamos sesión local.
+                                    // Supabase persiste sesión por su storage interno.
+
+                                    navController.navigate(Routes.Home) {
+                                        popUpTo(Routes.Login) { inclusive = true }
+                                    }
+                                },
+                                onFailure = { e ->
+                                    val msg = (e.message ?: "").lowercase()
+                                    loginError = when {
+                                        msg.contains("email not confirmed") ||
+                                                msg.contains("email_not_confirmed") ||
+                                                msg.contains("confirm") ->
+                                            "Tu correo aún no está confirmado. Revisa tu email y confirma tu cuenta."
+
+                                        msg.contains("invalid login") ||
+                                                msg.contains("invalid") ||
+                                                msg.contains("credentials") ->
+                                            "Credenciales inválidas. Verifica tu correo y contraseña."
+
+                                        else -> e.message ?: "No se pudo iniciar sesión."
+                                    }
+                                }
+                            )
+                        } finally {
+                            isLoggingIn = false
+                        }
                     }
                 },
                 enabled = !bloqueado,
@@ -175,7 +258,17 @@ fun LoginScreen(navController: NavController) {
                     contentColor = Color.White
                 )
             ) {
-                Text("Iniciar sesión", style = MaterialTheme.typography.titleMedium)
+                if (isLoggingIn) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("Iniciando...")
+                } else {
+                    Text("Iniciar sesión", style = MaterialTheme.typography.titleMedium)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -184,7 +277,6 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-
                 Text(
                     text = "Pre-registrarme",
                     color = if (bloqueado) Color.Gray else Color(0xFF7A003C),
@@ -196,16 +288,18 @@ fun LoginScreen(navController: NavController) {
                 Text(
                     text = "¿Olvidaste tu contraseña?",
                     color = Color(0xFF7A003C),
-                    modifier = Modifier.clickable { /* luego */ }
+                    modifier = Modifier.clickable(enabled = !bloqueado) {
+                        // luego: AuthApp.resetPassword(email)
+                    }
                 )
             }
 
-            // (Opcional) botón para revalidar estatus manualmente
             Spacer(modifier = Modifier.height(18.dp))
+
             Text(
                 text = "Actualizar estatus",
                 color = Color(0xFF7A003C),
-                modifier = Modifier.clickable(enabled = !checkingStatus) {
+                modifier = Modifier.clickable(enabled = !checkingStatus && !isLoggingIn) {
                     scope.launch {
                         checkingStatus = true
                         statusError = null
