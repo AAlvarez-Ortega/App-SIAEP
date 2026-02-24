@@ -37,23 +37,6 @@ object consultaas {
     }
 
     /**
-     * Valida si existe la solicitud por id (para estatus "en proceso")
-     */
-    suspend fun existeSolicitudPorId(id: String): Boolean {
-        val client = SupabaseConnection.client
-
-        val res = client
-            .from("solicitudes")
-            .select {
-                filter { eq("id", id) }
-                limit(1)
-            }
-            .decodeList<SolicitudIdDto>()
-
-        return res.isNotEmpty()
-    }
-
-    /**
      * ✅ CAMBIO: antes numeroBoleta + columna numero_boleta
      * Ahora: boletaOEmpleado + columna boleta_o_empleado
      *
@@ -75,5 +58,19 @@ object consultaas {
             .decodeList<SolicitudIdDto>() // solo necesitamos el id
 
         return result.isNotEmpty()
+    }
+
+    suspend fun obtenerEstadoSolicitudPorId(id: String): String? {
+        val client = SupabaseConnection.client
+
+        val result = client
+            .from("solicitudes")
+            .select(columns = io.github.jan.supabase.postgrest.query.Columns.list("estado")) {
+                filter { eq("id", id) }
+                limit(1)
+            }
+            .decodeList<Map<String, String?>>()
+
+        return result.firstOrNull()?.get("estado")
     }
 }

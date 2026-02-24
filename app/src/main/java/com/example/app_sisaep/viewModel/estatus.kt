@@ -2,12 +2,13 @@ package com.example.app_sisaep.viewModel
 
 import android.content.Context
 import androidx.core.content.edit
-import com.example.app_sisaep.viewModel.consultaas
 
 object estatus {
 
     private const val PREFS = "sisaep_prefs"
     private const val KEY_PENDING_SOLICITUD_ID = "pending_solicitud_id"
+
+    enum class EstadoSolicitud { ACEPTADO, PENDIENTE, RECHAZADO, NO_EXISTE }
 
     fun guardarSolicitudPendiente(context: Context, solicitudId: String) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit {
@@ -27,12 +28,30 @@ object estatus {
     }
 
     /**
-     * Retorna true si hay solicitud pendiente y todavía existe en la tabla.
+     * Retorna el estado real de la solicitud:
+     * - ACEPTADO: desbloquea
+     * - PENDIENTE: bloquea
+     * - RECHAZADO: bloquea y muestra aviso
+     * - NO_EXISTE: limpia el id guardado y desbloquea
      */
-    suspend fun haySolicitudEnProceso(context: Context): Boolean {
-        val id = obtenerSolicitudPendienteId(context) ?: return false
-        val existe = consultaas.existeSolicitudPorId(id)
-        if (!existe) limpiarSolicitudPendiente(context) // ya no existe, limpio
-        return existe
+    suspend fun obtenerEstadoSolicitud(context: Context): EstadoSolicitud {
+        val id = obtenerSolicitudPendienteId(context) ?: return EstadoSolicitud.NO_EXISTE
+
+        // Debes implementar esta función en consultaas (abajo te dejo el código)
+        val estadoDb = consultaas.obtenerEstadoSolicitudPorId(id)
+
+        return when (estadoDb?.trim()?.lowercase()) {
+            "aceptado" -> EstadoSolicitud.ACEPTADO
+            "pendiente" -> EstadoSolicitud.PENDIENTE
+            "rechazado" -> EstadoSolicitud.RECHAZADO
+            null -> {
+                limpiarSolicitudPendiente(context) // ya no existe / no se encontró
+                EstadoSolicitud.NO_EXISTE
+            }
+            else -> {
+                // si llega algo raro, tratamos como pendiente para evitar desbloqueos
+                EstadoSolicitud.PENDIENTE
+            }
+        }
     }
 }

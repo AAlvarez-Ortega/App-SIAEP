@@ -32,7 +32,8 @@ fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    var solicitudEnProceso by remember { mutableStateOf(false) }
+    // ✅ ahora guardamos estado real (no boolean)
+    var estadoSolicitud by remember { mutableStateOf(estatus.EstadoSolicitud.NO_EXISTE) }
     var checkingStatus by remember { mutableStateOf(true) }
     var statusError by remember { mutableStateOf<String?>(null) }
 
@@ -46,7 +47,6 @@ fun LoginScreen(navController: NavController) {
 
     // ✅ 1) Revisar sesión REAL (Supabase) al abrir la pantalla
     LaunchedEffect(Unit) {
-        // Espera un poco a que Supabase restaure sesión desde storage (si existe)
         val haySesion = try {
             RecordarSesion.esperarSesion(timeoutMs = 2500L, tickMs = 150L)
         } catch (_: Exception) {
@@ -60,20 +60,24 @@ fun LoginScreen(navController: NavController) {
             return@LaunchedEffect
         }
 
-        // ✅ 2) Si NO hay sesión, consulta estatus (como antes)
+        // ✅ 2) Si NO hay sesión, consulta estatus (nuevo)
         checkingStatus = true
         statusError = null
         try {
-            solicitudEnProceso = estatus.haySolicitudEnProceso(context)
+            estadoSolicitud = estatus.obtenerEstadoSolicitud(context)
         } catch (e: Exception) {
             statusError = e.message ?: "No se pudo validar el estatus de la solicitud"
-            solicitudEnProceso = false
+            estadoSolicitud = estatus.EstadoSolicitud.NO_EXISTE
         } finally {
             checkingStatus = false
         }
     }
 
-    val bloqueado = solicitudEnProceso || checkingStatus || isLoggingIn
+    val bloqueadoPorEstado =
+        estadoSolicitud == estatus.EstadoSolicitud.PENDIENTE ||
+                estadoSolicitud == estatus.EstadoSolicitud.RECHAZADO
+
+    val bloqueado = bloqueadoPorEstado || checkingStatus || isLoggingIn
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -107,31 +111,58 @@ fun LoginScreen(navController: NavController) {
                 AssistChip(
                     onClick = {},
                     enabled = false,
-                    label = { Text("Verificando estatus...") }
+                    label = { Text("Verificando estatus.") }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            if (solicitudEnProceso) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3CD)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = "Solicitud en proceso",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color(0xFF664D03)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Tu pre-registro ya fue enviado. Cuando sea validado podrás iniciar sesión.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF664D03)
-                        )
+            // ✅ Mensajes según estado
+            when (estadoSolicitud) {
+                estatus.EstadoSolicitud.PENDIENTE -> {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3CD)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "Solicitud en proceso",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color(0xFF664D03)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Tu pre-registro ya fue enviado. Cuando sea validado podrás iniciar sesión.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF664D03)
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+
+                estatus.EstadoSolicitud.RECHAZADO -> {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE5E5)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "Solicitud rechazada",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color(0xFF8A1F1F)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Solicitud rechazada, ponte en contacto con soporte técnico.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF8A1F1F)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                else -> Unit // ACEPTADO o NO_EXISTE: no mostramos card
             }
 
             statusError?.let {
@@ -171,7 +202,6 @@ fun LoginScreen(navController: NavController) {
                     errorBorderColor = MaterialTheme.colorScheme.error,
                     focusedLabelColor = Color(0xFF7A003C)
                 )
-
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -193,7 +223,6 @@ fun LoginScreen(navController: NavController) {
                     errorBorderColor = MaterialTheme.colorScheme.error,
                     focusedLabelColor = Color(0xFF7A003C)
                 )
-
             )
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -224,9 +253,6 @@ fun LoginScreen(navController: NavController) {
 
                             result.fold(
                                 onSuccess = {
-                                    // ✅ Ya NO guardamos sesión local.
-                                    // Supabase persiste sesión por su storage interno.
-
                                     navController.navigate(Routes.Home) {
                                         popUpTo(Routes.Login) { inclusive = true }
                                     }
@@ -270,7 +296,7 @@ fun LoginScreen(navController: NavController) {
                         color = Color.White
                     )
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Iniciando...")
+                    Text("Iniciando.")
                 } else {
                     Text("Iniciar sesión", style = MaterialTheme.typography.titleMedium)
                 }
@@ -292,7 +318,7 @@ fun LoginScreen(navController: NavController) {
 
                 Text(
                     text = "¿Olvidaste tu contraseña?",
-                    color = Color(0xFF7A003C),
+                    color = if (bloqueado) Color.Gray else Color(0xFF7A003C),
                     modifier = Modifier.clickable(enabled = !bloqueado) {
                         // luego: AuthApp.resetPassword(email)
                     }
@@ -309,10 +335,10 @@ fun LoginScreen(navController: NavController) {
                         checkingStatus = true
                         statusError = null
                         try {
-                            solicitudEnProceso = estatus.haySolicitudEnProceso(context)
+                            estadoSolicitud = estatus.obtenerEstadoSolicitud(context)
                         } catch (e: Exception) {
                             statusError = e.message ?: "No se pudo validar el estatus"
-                            solicitudEnProceso = false
+                            estadoSolicitud = estatus.EstadoSolicitud.NO_EXISTE
                         } finally {
                             checkingStatus = false
                         }

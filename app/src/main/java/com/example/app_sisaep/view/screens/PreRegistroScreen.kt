@@ -26,9 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.app_sisaep.model.dto.EscuelaDto
 import com.example.app_sisaep.model.dto.SolicitudInsertDto
+import com.example.app_sisaep.model.supabase.SupabaseConnection // ✅ NUEVO
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.viewModel.consultaas
 import com.example.app_sisaep.viewModel.estatus
+import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.launch
 
 private val Guinda = Color(0xFF7A003C)
@@ -152,7 +154,6 @@ fun PreRegistroScreen(navController: NavController) {
         cursorColor = Guinda,
         unfocusedBorderColor = Color(0xFFD0D0D0)
     )
-
 
     LaunchedEffect(Unit) {
         loading = true
@@ -432,7 +433,6 @@ fun PreRegistroScreen(navController: NavController) {
                             if (ok) nextStep()
                         },
                         onSubmit = {
-                            // Validar TODO antes de enviar
                             val okPersonal = validateStep(Step.Personal)
                             val okContacto = validateStep(Step.Contacto)
                             val okEscuela = validateStep(Step.Escuela)
@@ -443,8 +443,6 @@ fun PreRegistroScreen(navController: NavController) {
 
                             scope.launch {
                                 try {
-                                    // 🔎 Verificamos si ya existe (boleta/empleado + curp)
-                                    // ⚠️ Requiere actualizar consultaas.existeSolicitud(...) para usar boleta_o_empleado
                                     val yaExiste = consultaas.existeSolicitud(
                                         boletaOEmpleado = boletaOEmpleado.trim(),
                                         curp = curp.trim()
@@ -465,12 +463,22 @@ fun PreRegistroScreen(navController: NavController) {
                                         escuelaId = escuelaSeleccionada!!.id
                                     )
 
-                                    // ✅ Insertamos si no existe
                                     val newId = consultaas.insertarSolicitud(payload)
+
+                                    // ✅ Guardamos solicitud pendiente (igual que antes)
                                     estatus.guardarSolicitudPendiente(context, newId)
 
+                                    // ✅ NUEVO: aseguramos que NO haya sesión activa (evita que Login te mande a Home)
+                                    try {
+                                        SupabaseConnection.client.auth.signOut()
+                                    } catch (_: Exception) {
+                                        // si falla, no detenemos el flujo
+                                    }
+
+                                    // ✅ NUEVO: navegamos a Login limpiando backstack del PreRegistro
                                     navController.navigate(Routes.Login) {
-                                        popUpTo(Routes.Login) { inclusive = true }
+                                        popUpTo(Routes.PreRegistro) { inclusive = true }
+                                        launchSingleTop = true
                                     }
                                 } catch (e: Exception) {
                                     errorMessage = e.message ?: "No se pudo enviar la solicitud"
