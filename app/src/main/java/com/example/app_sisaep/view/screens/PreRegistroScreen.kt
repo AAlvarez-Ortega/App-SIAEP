@@ -146,12 +146,13 @@ fun PreRegistroScreen(navController: NavController) {
         if (idx > 0) currentStep = order[idx - 1]
     }
 
-    val fieldColors = TextFieldDefaults.outlinedTextFieldColors(
+    val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = Guinda,
         focusedLabelColor = Guinda,
         cursorColor = Guinda,
         unfocusedBorderColor = Color(0xFFD0D0D0)
     )
+
 
     LaunchedEffect(Unit) {
         loading = true

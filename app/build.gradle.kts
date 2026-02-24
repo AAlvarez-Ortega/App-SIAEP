@@ -48,36 +48,54 @@ dependencies {
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
+    // ✅ Compose BOM (alinea TODAS las versiones)
+    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
+
     // Compose
     implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.compose.ui:ui:1.6.8")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.6.8")
-    implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+
+    // Opcionales (si los usas)
+    implementation("androidx.compose.material:material-icons-extended") // o deja tu libs.androidx... si ya funciona
+    implementation(libs.coil.compose)
+
+    // AppCompat / Material (puedes dejarlos)
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
-    implementation(libs.androidx.compose.material.icons.extended)
-    implementation("io.coil-kt:coil-compose:2.6.0")
 
-    //QR
-    implementation(libs.zxing.core)
     // Core
     implementation("androidx.core:core-ktx:1.13.1")
 
-    // ✅ Supabase-kt (core + módulos correctos)
-    implementation(libs.supabase.kt)     // <-- IMPORTANTE (createSupabaseClient)
-    implementation(libs.gotrue.kt)      // <-- IMPORTANTE (auth / Email provider)
+    // QR
+    implementation(libs.zxing.core)
+
+    // Supabase
+    implementation(libs.supabase.kt)
+    implementation(libs.gotrue.kt)
     implementation(libs.postgrest.kt)
     implementation(libs.storage.kt)
-    implementation(libs.realtime.kt)    // opcional, solo si lo usas
+    implementation(libs.realtime.kt)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // ✅ Ktor engine (solo 1)
+    // Ktor (solo 1 engine)
     implementation(libs.ktor.client.okhttp)
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
 
-    // Debug
-    debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.8")
+    // ✅ Debug (SIN versiones, también lo controla el BOM)
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.4")
+    implementation("androidx.camera:camera-camera2:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
+
+// ML Kit QR/Barcodes
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+
 }

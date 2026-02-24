@@ -164,12 +164,14 @@ fun LoginScreen(navController: NavController) {
                 enabled = !bloqueado,
                 shape = RoundedCornerShape(12.dp),
                 isError = email.isNotBlank() && !isValidEmail(email),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF7A003C),
                     unfocusedBorderColor = Color.LightGray,
                     cursorColor = Color(0xFF7A003C),
-                    errorBorderColor = MaterialTheme.colorScheme.error
+                    errorBorderColor = MaterialTheme.colorScheme.error,
+                    focusedLabelColor = Color(0xFF7A003C)
                 )
+
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -184,11 +186,14 @@ fun LoginScreen(navController: NavController) {
                 singleLine = true,
                 enabled = !bloqueado,
                 shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF7A003C),
                     unfocusedBorderColor = Color.LightGray,
-                    cursorColor = Color(0xFF7A003C)
+                    cursorColor = Color(0xFF7A003C),
+                    errorBorderColor = MaterialTheme.colorScheme.error,
+                    focusedLabelColor = Color(0xFF7A003C)
                 )
+
             )
 
             Spacer(modifier = Modifier.height(28.dp))
