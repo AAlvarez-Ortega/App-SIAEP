@@ -263,7 +263,7 @@ fun PreRegistroScreen(navController: NavController) {
                                 Column {
                                     OutlinedTextField(
                                         value = nombre,
-                                        onValueChange = { nombre = it; errNombre = null },
+                                        onValueChange = { nombre = it.uppercase(); errNombre = null },
                                         label = { Text("Nombre") },
                                         modifier = Modifier.fillMaxWidth(),
                                         singleLine = true,
@@ -281,7 +281,7 @@ fun PreRegistroScreen(navController: NavController) {
                                     ) {
                                         OutlinedTextField(
                                             value = apellidoPaterno,
-                                            onValueChange = { apellidoPaterno = it; errApPat = null },
+                                            onValueChange = { apellidoPaterno = it.uppercase(); errApPat = null },
                                             label = { Text("Apellido paterno") },
                                             modifier = Modifier.weight(1f),
                                             singleLine = true,
@@ -292,7 +292,7 @@ fun PreRegistroScreen(navController: NavController) {
                                         )
                                         OutlinedTextField(
                                             value = apellidoMaterno,
-                                            onValueChange = { apellidoMaterno = it; errApMat = null },
+                                            onValueChange = { apellidoMaterno = it.uppercase(); errApMat = null },
                                             label = { Text("Apellido materno") },
                                             modifier = Modifier.weight(1f),
                                             singleLine = true,
@@ -311,7 +311,7 @@ fun PreRegistroScreen(navController: NavController) {
                                             boletaOEmpleado = input.filter { it.isDigit() }.take(10)
                                             errBoleta = null
                                         },
-                                        label = { Text("Boleta o empleado") },
+                                        label = { Text("Boleta o número de empleado") },
                                         modifier = Modifier.fillMaxWidth(),
                                         singleLine = true,
                                         isError = errBoleta != null,
@@ -534,13 +534,31 @@ private fun Stepper(current: Step, modifier: Modifier = Modifier) {
             steps.forEachIndexed { i, s ->
                 val active = (s == current)
 
+                // 👇 PEGA ESTO AQUÍ
+                val w = when (s.title) {
+                    "Contacto" -> 0.95f
+                    "Institución" -> 1.05f
+                    else -> 1f
+                }
+
                 AssistChip(
+                    modifier = Modifier.weight(w),
                     onClick = {},
                     enabled = false,
                     label = {
+                        val isDatos = s.title == "Datos personales"
+
+                        val labelText = if (isDatos) "Datos\npersonales" else s.title
+                        val finalText = if (isDatos)
+                            "${i + 1}. $labelText"
+                        else
+                            "${i + 1}.\u00A0$labelText"
+
                         Text(
-                            text = "${i + 1}. ${s.title}",
-                            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal
+                            text = finalText,
+                            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+                            maxLines = if (isDatos) 2 else 1,
+                            softWrap = isDatos
                         )
                     },
                     colors = AssistChipDefaults.assistChipColors(
