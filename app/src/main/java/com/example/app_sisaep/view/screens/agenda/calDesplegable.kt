@@ -34,6 +34,9 @@ import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.abs
 
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
+
 @Composable
 fun CalDesplegable(
     selectedDate: LocalDate,
@@ -260,7 +263,7 @@ private fun MonthHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onPrev) {
-            Icon(Icons.Filled.ChevronLeft, contentDescription = "Mes anterior")
+            Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.previous_month))
         }
 
         Text(
@@ -270,7 +273,7 @@ private fun MonthHeader(
         )
 
         IconButton(onClick = onNext) {
-            Icon(Icons.Filled.ChevronRight, contentDescription = "Mes siguiente")
+            Icon(Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.next_month))
         }
     }
 }

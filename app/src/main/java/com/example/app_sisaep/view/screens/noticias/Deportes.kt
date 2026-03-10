@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.R
 data class Deporte(val nombre: String, val iconRes: Int)
@@ -21,17 +22,16 @@ data class Deporte(val nombre: String, val iconRes: Int)
 @Composable
 fun DeportesSection() {
     Text(
-        text = "Deportes",
+        text = stringResource(R.string.sports),
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(bottom = 8.dp)
     )
 
     val deportes = listOf(
-        Deporte("Fútbol americano", R.drawable.ic_futbol_americano),
-        Deporte("Fútbol", R.drawable.ic_futbol),
-        Deporte("Basketball", R.drawable.ic_basketnall),
-        Deporte("Tocho bandera", R.drawable.ic_tocho)
-
+        Deporte(stringResource(R.string.sport_football_americano), R.drawable.ic_futbol_americano),
+        Deporte(stringResource(R.string.sport_football), R.drawable.ic_futbol),
+        Deporte(stringResource(R.string.sport_basketball), R.drawable.ic_basketnall),
+        Deporte(stringResource(R.string.sport_tocho), R.drawable.ic_tocho)
     )
 
     LazyRow(

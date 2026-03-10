@@ -9,6 +9,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
+
 @Composable
 fun HorarioContent(
     selectedDate: LocalDate,
@@ -21,7 +24,7 @@ fun HorarioContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "Horario escolar",
+            text = stringResource(R.string.school_schedule),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )

@@ -14,14 +14,16 @@ import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.R
 import com.example.app_sisaep.view.screens.noticias.HimnoIPNCard
 
+import androidx.compose.ui.res.stringResource
+
 @Composable
 fun TarjetasEspecialesCarrusel() {
     val tarjetas = listOf(
-        CardData("Himno IPN", Color(0xFF7F1E57), R.drawable.logo_ipn_blanco, CardType.HIMNO),
-        CardData("Doctorado", Color(0xFF388E3C), R.drawable.ic_doctorado),
-        CardData("Maestría en Administración", Color(0xFF1976D2), R.drawable.ic_maestria_admin),
-        CardData("Maestría en Informática", Color(0xFFFBC02D), R.drawable.ic_maestria_info),
-        CardData("Unidades de Aprendizaje", Color(0xFF8E24AA), R.drawable.ic_unidades)
+        CardData(stringResource(R.string.ipn_anthem_title), Color(0xFF7F1E57), R.drawable.logo_ipn_blanco, CardType.HIMNO),
+        CardData(stringResource(R.string.doctorate), Color(0xFF388E3C), R.drawable.ic_doctorado),
+        CardData(stringResource(R.string.masters_administration), Color(0xFF1976D2), R.drawable.ic_maestria_admin),
+        CardData(stringResource(R.string.masters_computer_science), Color(0xFFFBC02D), R.drawable.ic_maestria_info),
+        CardData(stringResource(R.string.learning_units), Color(0xFF8E24AA), R.drawable.ic_unidades)
     )
 
     val listState = rememberLazyListState()

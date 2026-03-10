@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.R
@@ -48,13 +49,13 @@ fun AppScaffold(
     versionApp: String = "1.0.0",
     onConfigClick: () -> Unit = {},
     onLogoutClick: () -> Unit,
-    navItems: List<BottomNavItem>, // 4 items (izq 2, der 2)
+    topBarLogoRes: Int? = null,
+    navItems: List<BottomNavItem>,
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     require(navItems.size == 4) { "navItems debe tener exactamente 4 elementos." }
 
-    // 🎨 IPN Theme
     val guindaIPN = Color(0xFF7A003C)
     val blanco = Color.White
 
@@ -62,7 +63,6 @@ fun AppScaffold(
     val scope = rememberCoroutineScope()
     var qrMenuExpanded by remember { mutableStateOf(false) }
 
-    // ✅ Insets reales del dispositivo (para que no se corte el menú flotante)
     val navBarsBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     ModalNavigationDrawer(
@@ -76,7 +76,11 @@ fun AppScaffold(
                     .background(Color(0xFFF3F3F3))
                     .padding(16.dp)
             ) {
-                Text("Menú", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    stringResource(R.string.menu),
+                    style = MaterialTheme.typography.titleLarge
+                )
+
                 Spacer(Modifier.height(16.dp))
 
                 Button(
@@ -86,7 +90,7 @@ fun AppScaffold(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Configuración")
+                    Text(stringResource(R.string.settings))
                 }
 
                 Spacer(Modifier.weight(1f))
@@ -96,26 +100,26 @@ fun AppScaffold(
                         scope.launch {
                             qrMenuExpanded = false
                             drawerState.close()
-
-                            // 1) Cierra sesión Supabase
                             AuthApp.logout()
-
-                            // 2) Recordar sesión (solo supabase)
                             RecordarSesion.cerrarSesion()
-
-                            // 3) Navegación la controla la pantalla
                             onLogoutClick()
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
-                    Text("Cerrar sesión", color = MaterialTheme.colorScheme.onError)
+                    Text(
+                        stringResource(R.string.logout),
+                        color = MaterialTheme.colorScheme.onError
+                    )
                 }
 
                 Spacer(Modifier.height(12.dp))
+
                 Text(
-                    "Versión $versionApp",
+                    text = stringResource(R.string.version_label, versionApp),
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
@@ -124,33 +128,32 @@ fun AppScaffold(
         }
     ) {
         Scaffold(
-            // ✅ Respeta recortes, barra de estado, nav bar, etc.
             contentWindowInsets = WindowInsets.safeDrawing,
-
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
-                            text = "$nombreUsuario",
+                            text = stringResource(R.string.welcome_user, nombreUsuario),
                             color = blanco,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                        IconButton(
+                            onClick = { scope.launch { drawerState.open() } }
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Menu,
-                                contentDescription = "Menú",
+                                contentDescription = stringResource(R.string.menu),
                                 tint = blanco
                             )
                         }
                     },
                     actions = {
-                        // ✅ Logo blanco fijo
                         Image(
                             painter = painterResource(id = R.drawable.logo_ipn_blanco),
-                            contentDescription = "IPN",
+                            contentDescription = stringResource(R.string.ipn_logo),
                             modifier = Modifier
                                 .size(34.dp)
                                 .padding(end = 10.dp)
@@ -164,12 +167,8 @@ fun AppScaffold(
                     )
                 )
             },
-
             bottomBar = {
-                NavigationBar(
-
-                    containerColor = guindaIPN
-                ) {
+                NavigationBar(containerColor = guindaIPN) {
                     @Composable
                     fun NavLabel(text: String) {
                         Text(
@@ -180,7 +179,6 @@ fun AppScaffold(
                         )
                     }
 
-                    // Item 0
                     NavigationBarItem(
                         icon = navItems[0].icon,
                         label = { NavLabel(navItems[0].label) },
@@ -193,7 +191,6 @@ fun AppScaffold(
                         colors = navColors()
                     )
 
-                    // Item 1
                     NavigationBarItem(
                         icon = navItems[1].icon,
                         label = { NavLabel(navItems[1].label) },
@@ -206,7 +203,6 @@ fun AppScaffold(
                         colors = navColors()
                     )
 
-                    // ✅ Botón central QR estilo FAB (guinda + icono blanco + elevación)
                     Box(
                         modifier = Modifier
                             .size(55.dp)
@@ -221,15 +217,13 @@ fun AppScaffold(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,
-                                contentDescription = "QR",
+                                contentDescription = stringResource(R.string.qr),
                                 tint = Color(0xFF7A003C),
                                 modifier = Modifier.size(28.dp)
                             )
-
                         }
                     }
 
-                    // Item 2
                     NavigationBarItem(
                         icon = navItems[2].icon,
                         label = { NavLabel(navItems[2].label) },
@@ -242,7 +236,6 @@ fun AppScaffold(
                         colors = navColors()
                     )
 
-                    // Item 3
                     NavigationBarItem(
                         icon = navItems[3].icon,
                         label = { NavLabel(navItems[3].label) },
@@ -256,15 +249,11 @@ fun AppScaffold(
                     )
                 }
             },
-
             floatingActionButton = floatingActionButton
         ) { paddingValues ->
-
             Box(modifier = Modifier.fillMaxSize()) {
-
                 content(paddingValues)
 
-                // Backdrop para cerrar menú QR tocando afuera
                 if (qrMenuExpanded) {
                     Box(
                         modifier = Modifier
@@ -282,7 +271,6 @@ fun AppScaffold(
                     exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        // ✅ dinámico según dispositivo
                         .padding(bottom = navBarsBottom + 92.dp)
                 ) {
                     Surface(
@@ -303,7 +291,7 @@ fun AppScaffold(
                                 },
                                 modifier = Modifier.width(220.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF7A003C), // guinda IPN
+                                    containerColor = Color(0xFF7A003C),
                                     contentColor = Color.White
                                 )
                             ) {
@@ -312,9 +300,8 @@ fun AppScaffold(
                                     contentDescription = null
                                 )
                                 Spacer(Modifier.width(10.dp))
-                                Text("Generar QR")
+                                Text(stringResource(R.string.generate_qr))
                             }
-
 
                             OutlinedButton(
                                 onClick = {
@@ -330,7 +317,7 @@ fun AppScaffold(
                             ) {
                                 Icon(Icons.Default.CameraAlt, null)
                                 Spacer(Modifier.width(10.dp))
-                                Text("Escanear QR")
+                                Text(stringResource(R.string.scan_qr))
                             }
                         }
                     }

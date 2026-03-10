@@ -23,6 +23,9 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.Locale
 
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NuevoEventoContent(
@@ -31,7 +34,7 @@ fun NuevoEventoContent(
     onCancel: () -> Unit = {},
     onSaveSimulated: () -> Unit = {}
 ) {
-    val locale = remember { Locale("es", "MX") }
+    val locale = Locale.getDefault()
     val dateText = remember(selectedDate) {
         val fmt = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM yyyy", locale)
         selectedDate.format(fmt).replaceFirstChar { it.uppercase() }
@@ -39,11 +42,25 @@ fun NuevoEventoContent(
 
     // ---- Form state (simulado) ----
     var titulo by remember { mutableStateOf("") }
-    var tipo by remember { mutableStateOf("Clase") }
+
+    val classLabel = stringResource(R.string.event_type_class)
+    val tutoringLabel = stringResource(R.string.event_type_tutoring)
+    val reminderLabel = stringResource(R.string.event_type_reminder)
+
+    var tipo by remember { mutableStateOf(classLabel) }
     var horaInicio by remember { mutableStateOf("") }
     var horaFin by remember { mutableStateOf("") }
     var lugar by remember { mutableStateOf("") }
     var notas by remember { mutableStateOf("") }
+
+    val errorTitleRequired = stringResource(R.string.error_title_required)
+    val errorStartTimeRequired = stringResource(R.string.error_start_time_required)
+    val errorInvalidTimeFormat = stringResource(R.string.error_invalid_time_format)
+    val errorEndTimeRequired = stringResource(R.string.error_end_time_required)
+    val errorEndTimeAfterStart = stringResource(R.string.error_end_time_after_start)
+    val errorPlaceRequired = stringResource(R.string.error_place_required)
+    val errorCheckMarkedFields = stringResource(R.string.error_check_marked_fields)
+    val eventSavedSimulated = stringResource(R.string.event_saved_simulated)
 
     // ---- Errors ----
     var tituloError by remember { mutableStateOf<String?>(null) }
@@ -79,28 +96,28 @@ fun NuevoEventoContent(
         horaFinError = null
         lugarError = null
 
-        if (titulo.trim().isEmpty()) tituloError = "El título es obligatorio."
+        if (titulo.trim().isEmpty()) tituloError = errorTitleRequired
 
         val tIni = parseTimeOrNull(horaInicio)
         val tFin = parseTimeOrNull(horaFin)
 
         if (horaInicio.trim().isEmpty()) {
-            horaInicioError = "Hora inicio obligatoria (HH:mm)."
+            horaInicioError = errorStartTimeRequired
         } else if (tIni == null) {
-            horaInicioError = "Formato inválido. Usa HH:mm (ej. 09:00)."
+            horaInicioError = errorInvalidTimeFormat
         }
 
         if (horaFin.trim().isEmpty()) {
-            horaFinError = "Hora fin obligatoria (HH:mm)."
+            horaFinError = errorEndTimeRequired
         } else if (tFin == null) {
-            horaFinError = "Formato inválido. Usa HH:mm (ej. 10:30)."
+            horaFinError = errorInvalidTimeFormat
         }
 
         if (tIni != null && tFin != null && !tFin.isAfter(tIni)) {
-            horaFinError = "La hora fin debe ser mayor a la hora inicio."
+            horaFinError = errorEndTimeAfterStart
         }
 
-        if (lugar.trim().isEmpty()) lugarError = "El lugar es obligatorio."
+        if (lugar.trim().isEmpty()) lugarError = errorPlaceRequired
 
         return tituloError == null &&
                 horaInicioError == null &&
@@ -128,7 +145,7 @@ fun NuevoEventoContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "Nuevo evento",
+            text = stringResource(R.string.new_event),
             style = MaterialTheme.typography.headlineSmall
         )
 
@@ -140,19 +157,19 @@ fun NuevoEventoContent(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
-                selected = tipo == "Clase",
-                onClick = { tipo = "Clase" },
-                label = { Text("Clase") }
+                selected = tipo == classLabel,
+                onClick = { tipo = classLabel },
+                label = { Text(classLabel) }
             )
             FilterChip(
-                selected = tipo == "Asesoría",
-                onClick = { tipo = "Asesoría" },
-                label = { Text("Asesoría") }
+                selected = tipo == tutoringLabel,
+                onClick = { tipo = tutoringLabel },
+                label = { Text(tutoringLabel) }
             )
             FilterChip(
-                selected = tipo == "Recordatorio",
-                onClick = { tipo = "Recordatorio" },
-                label = { Text("Recordatorio") }
+                selected = tipo == reminderLabel,
+                onClick = { tipo = reminderLabel },
+                label = { Text(reminderLabel) }
             )
         }
 
@@ -170,7 +187,7 @@ fun NuevoEventoContent(
                         delay(120); birTitulo.bringIntoView()
                     }
                 },
-            label = { Text("Título") },
+            label = { Text(stringResource(R.string.title)) },
             singleLine = true,
             isError = tituloError != null,
             supportingText = { if (tituloError != null) Text(tituloError!!) }
@@ -194,7 +211,7 @@ fun NuevoEventoContent(
                             delay(120); birHoraInicio.bringIntoView()
                         }
                     },
-                label = { Text("Hora inicio") },
+                label = { Text(stringResource(R.string.start_time)) },
                 placeholder = { Text("09:00") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -216,7 +233,7 @@ fun NuevoEventoContent(
                             delay(120); birHoraFin.bringIntoView()
                         }
                     },
-                label = { Text("Hora fin") },
+                label = { Text(stringResource(R.string.end_time)) },
                 placeholder = { Text("10:30") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -239,8 +256,8 @@ fun NuevoEventoContent(
                         delay(120); birLugar.bringIntoView()
                     }
                 },
-            label = { Text("Lugar") },
-            placeholder = { Text("Aula 203 / Laboratorio / Online") },
+            label = { Text(stringResource(R.string.place)) },
+            placeholder = { Text(stringResource(R.string.place_placeholder)) },
             singleLine = true,
             isError = lugarError != null,
             supportingText = { if (lugarError != null) Text(lugarError!!) }
@@ -258,8 +275,8 @@ fun NuevoEventoContent(
                         delay(120); birNotas.bringIntoView()
                     }
                 },
-            label = { Text("Notas") },
-            placeholder = { Text("Detalles del evento…") },
+            label = { Text(stringResource(R.string.notes)) },
+            placeholder = { Text(stringResource(R.string.event_details_placeholder)) },
             maxLines = 5
         )
 
@@ -275,14 +292,14 @@ fun NuevoEventoContent(
                     val ok = validate()
                     if (!ok) {
                         scope.launch {
-                            snackbarHostState.showSnackbar("Revisa los campos marcados ⚠️")
+                            snackbarHostState.showSnackbar(errorCheckMarkedFields)
                             bringFirstErrorIntoView()
                         }
                         return@Button
                     }
 
                     onSaveSimulated()
-                    scope.launch { snackbarHostState.showSnackbar("Evento guardado (simulado) ✅") }
+                    scope.launch { snackbarHostState.showSnackbar(eventSavedSimulated)}
 
                     titulo = ""
                     horaInicio = ""
@@ -292,7 +309,7 @@ fun NuevoEventoContent(
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Guardar")
+                Text(stringResource(R.string.save))
             }
         }
 

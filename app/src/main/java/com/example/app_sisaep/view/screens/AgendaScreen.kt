@@ -43,16 +43,18 @@ import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
+import androidx.compose.ui.res.stringResource
+
 private enum class AgendaBody { EVENTOS, HORARIO, NUEVO_EVENTO }
 
 @Composable
 fun AgendaScreen(navController: NavController) {
 
     val navItems = listOf(
-        BottomNavItem("Inicio") { Icon(Icons.Filled.Home, null) },
-        BottomNavItem("Calendario") { Icon(Icons.Filled.CalendarMonth, null) },
-        BottomNavItem("Agenda") { Icon(Icons.Filled.Schedule, null) },
-        BottomNavItem("Clases") { Icon(Icons.Filled.School, null) },
+        BottomNavItem(stringResource(R.string.home)) { Icon(Icons.Filled.Home, null) },
+        BottomNavItem(stringResource(R.string.calendar)) { Icon(Icons.Filled.CalendarMonth, null) },
+        BottomNavItem(stringResource(R.string.agenda)) { Icon(Icons.Filled.Schedule, null) },
+        BottomNavItem(stringResource(R.string.classes)) { Icon(Icons.Filled.School, null) },
     )
 
     // LocalDate como String para evitar Saver/stateSaver
@@ -89,8 +91,10 @@ fun AgendaScreen(navController: NavController) {
         val secondary = MaterialTheme.colorScheme.secondary
         val tertiary = MaterialTheme.colorScheme.tertiary
 
-        val events = remember(primary, secondary, tertiary) {
-            demoAgendaEvents(primary, secondary, tertiary)
+        val context = androidx.compose.ui.platform.LocalContext.current
+
+        val events = remember(context, primary, secondary, tertiary) {
+            demoAgendaEvents(context, primary, secondary, tertiary)
         }
 
         val locale = remember { Locale("es", "MX") }
@@ -115,7 +119,7 @@ fun AgendaScreen(navController: NavController) {
                 // Header fijo
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Agenda",
+                        text = stringResource(R.string.agenda),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -231,9 +235,9 @@ fun AgendaScreen(navController: NavController) {
                     .padding(start = 18.dp, bottom = 18.dp)
             ) {
                 if (currentBody == AgendaBody.NUEVO_EVENTO) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Volver a eventos")
+                    Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back_to_events))
                 } else {
-                    Icon(Icons.Filled.Add, contentDescription = "Nuevo evento")
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.new_event))
                 }
             }
 
@@ -257,9 +261,9 @@ fun AgendaScreen(navController: NavController) {
                     .padding(end = 18.dp, bottom = 18.dp)
             ) {
                 if (currentBody == AgendaBody.HORARIO) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Volver a eventos")
+                    Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back_to_events))
                 } else {
-                    Icon(Icons.Filled.DateRange, contentDescription = "Ver horario")
+                    Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.view_schedule))
                 }
             }
         }

@@ -22,6 +22,9 @@ import com.example.app_sisaep.viewModel.RecordarSesion
 import com.example.app_sisaep.viewModel.estatus
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -66,7 +69,7 @@ fun LoginScreen(navController: NavController) {
         try {
             estadoSolicitud = estatus.obtenerEstadoSolicitud(context)
         } catch (e: Exception) {
-            statusError = e.message ?: "No se pudo validar el estatus de la solicitud"
+            statusError = e.message ?: context.getString(R.string.error_validate_request_status)
             estadoSolicitud = estatus.EstadoSolicitud.NO_EXISTE
         } finally {
             checkingStatus = false
@@ -92,7 +95,7 @@ fun LoginScreen(navController: NavController) {
         ) {
 
             Text(
-                text = "Bienvenido",
+                text = stringResource(R.string.welcome),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.Black
             )
@@ -100,7 +103,7 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Inicia sesión para continuar",
+                text = stringResource(R.string.login_to_continue),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFF444444)
             )
@@ -111,7 +114,7 @@ fun LoginScreen(navController: NavController) {
                 AssistChip(
                     onClick = {},
                     enabled = false,
-                    label = { Text("Verificando estatus.") }
+                    label = { Text(stringResource(R.string.checking_status)) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -125,13 +128,13 @@ fun LoginScreen(navController: NavController) {
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(
-                                text = "Solicitud en proceso",
+                                text = stringResource(R.string.request_in_process),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color(0xFF664D03)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Tu pre-registro ya fue enviado. Cuando sea validado podrás iniciar sesión.",
+                                text = stringResource(R.string.preregister_sent_message),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color(0xFF664D03)
                             )
@@ -147,13 +150,13 @@ fun LoginScreen(navController: NavController) {
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(
-                                text = "Solicitud rechazada",
+                                text = stringResource(R.string.request_rejected),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color(0xFF8A1F1F)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Solicitud rechazada, ponte en contacto con soporte técnico.",
+                                text = stringResource(R.string.request_rejected_message),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color(0xFF8A1F1F)
                             )
@@ -188,7 +191,7 @@ fun LoginScreen(navController: NavController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo") },
+                label = { Text(stringResource(R.string.email)) },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -209,7 +212,7 @@ fun LoginScreen(navController: NavController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña") },
+                label = { Text(stringResource(R.string.password)) },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
@@ -236,11 +239,11 @@ fun LoginScreen(navController: NavController) {
                         val pass = password
 
                         if (!isValidEmail(emailClean)) {
-                            loginError = "Ingresa un correo válido."
+                            loginError = context.getString(R.string.error_valid_email)
                             return@launch
                         }
                         if (pass.isBlank()) {
-                            loginError = "Ingresa tu contraseña."
+                            loginError = context.getString(R.string.error_enter_password)
                             return@launch
                         }
 
@@ -263,14 +266,14 @@ fun LoginScreen(navController: NavController) {
                                         msg.contains("email not confirmed") ||
                                                 msg.contains("email_not_confirmed") ||
                                                 msg.contains("confirm") ->
-                                            "Tu correo aún no está confirmado. Revisa tu email y confirma tu cuenta."
+                                            context.getString(R.string.error_email_not_confirmed)
 
                                         msg.contains("invalid login") ||
                                                 msg.contains("invalid") ||
                                                 msg.contains("credentials") ->
-                                            "Credenciales inválidas. Verifica tu correo y contraseña."
+                                            context.getString(R.string.error_invalid_credentials)
 
-                                        else -> e.message ?: "No se pudo iniciar sesión."
+                                        else -> e.message ?: context.getString(R.string.error_login_failed)
                                     }
                                 }
                             )
@@ -296,9 +299,9 @@ fun LoginScreen(navController: NavController) {
                         color = Color.White
                     )
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Iniciando.")
+                    Text(stringResource(R.string.logging_in))
                 } else {
-                    Text("Iniciar sesión", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.login), style = MaterialTheme.typography.titleMedium)
                 }
             }
 
@@ -309,7 +312,7 @@ fun LoginScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Pre-registrarme",
+                    text = stringResource(R.string.pre_register),
                     color = if (bloqueado) Color.Gray else Color(0xFF7A003C),
                     modifier = Modifier.clickable(enabled = !bloqueado) {
                         navController.navigate(Routes.PreRegistro)
@@ -317,7 +320,7 @@ fun LoginScreen(navController: NavController) {
                 )
 
                 Text(
-                    text = "¿Olvidaste tu contraseña?",
+                    text = stringResource(R.string.forgot_password),
                     color = if (bloqueado) Color.Gray else Color(0xFF7A003C),
                     modifier = Modifier.clickable(enabled = !bloqueado) {
                         // luego: AuthApp.resetPassword(email)
@@ -328,7 +331,7 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                text = "Actualizar estatus",
+                text = stringResource(R.string.refresh_status),
                 color = Color(0xFF7A003C),
                 modifier = Modifier.clickable(enabled = !checkingStatus && !isLoggingIn) {
                     scope.launch {
@@ -337,7 +340,7 @@ fun LoginScreen(navController: NavController) {
                         try {
                             estadoSolicitud = estatus.obtenerEstadoSolicitud(context)
                         } catch (e: Exception) {
-                            statusError = e.message ?: "No se pudo validar el estatus"
+                            statusError = e.message ?: context.getString(R.string.error_validate_status)
                             estadoSolicitud = estatus.EstadoSolicitud.NO_EXISTE
                         } finally {
                             checkingStatus = false

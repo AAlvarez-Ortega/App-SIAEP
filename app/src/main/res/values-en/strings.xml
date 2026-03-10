@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">App_SISAEP</string>
+
+    <string name="settings">Settings</string>
+    <string name="language">Language</string>
+    <string name="spanish">Spanish</string>
+    <string name="english">English</string>
+    <string name="news">News</string>
+    <string name="sports">Sports</string>
+
+    <string name="news_call">New call for applications</string>
+    <string name="news_payment">Re-enrollment payment</string>
+    <string name="news_workshops">Workshops available</string>
+    <string name="news_event">Cultural event</string>
+    <string name="news_notice">Important notice</string>
+
+    <string name="sport_football_americano">American Football</string>
+    <string name="sport_football">Soccer</string>
+    <string name="sport_basketball">Basketball</string>
+    <string name="sport_tocho">Flag Football</string>
+
+    <string name="cultural_activities">Cultural activities</string>
+    <string name="activity_theater">Theater</string>
+    <string name="activity_music">Music</string>
+    <string name="activity_dance">Dance</string>
+    <string name="activity_photography">Photography</string>
+
+    <string name="home">Home</string>
+    <string name="calendar">Calendar</string>
+    <string name="agenda">Agenda</string>
+    <string name="classes">Classes</string>
+
+    <string name="school_calendar">School calendar</string>
+
+    <string name="back_to_events">Back to events</string>
+    <string name="new_event">New event</string>
+    <string name="view_schedule">View schedule</string>
+
+    <string name="previous_month">Previous month</string>
+    <string name="next_month">Next month</string>
+
+    <string name="agenda_empty_title">You have no events for this day</string>
+    <string name="agenda_empty_subtitle">When you have classes, tutoring sessions, or reminders, they will appear here.</string>
+
+    <string name="demo_event_1_title">Class: Software Engineering</string>
+    <string name="demo_event_1_location">Room 203</string>
+    <string name="demo_event_1_note">Bring progress on the document and rubric.</string>
+    <string name="demo_event_1_type">Class</string>
+
+    <string name="demo_event_2_title">Tutoring: SAES Project</string>
+    <string name="demo_event_2_location">Laboratory</string>
+    <string name="demo_event_2_note">Review Agenda + Calendar.</string>
+    <string name="demo_event_2_type">Tutoring</string>
+
+    <string name="demo_event_3_title">Submission: Unit 2 Evidence</string>
+    <string name="demo_event_3_location">Platform</string>
+    <string name="demo_event_3_note">Upload PDF and screenshots.</string>
+    <string name="demo_event_3_type">Submission</string>
+
+    <string name="school_schedule">School schedule</string>
+
+    <string name="event_type_class">Class</string>
+    <string name="event_type_tutoring">Tutoring</string>
+    <string name="event_type_reminder">Reminder</string>
+    <string name="title">Title</string>
+    <string name="start_time">Start time</string>
+    <string name="end_time">End time</string>
+    <string name="place">Place</string>
+    <string name="place_placeholder">Room 203 / Laboratory / Online</string>
+    <string name="notes">Notes</string>
+    <string name="event_details_placeholder">Event details…</string>
+    <string name="save">Save</string>
+
+    <string name="error_title_required">Title is required.</string>
+    <string name="error_start_time_required">Start time is required (HH:mm).</string>
+    <string name="error_invalid_time_format">Invalid format. Use HH:mm (e.g. 09:00).</string>
+    <string name="error_end_time_required">End time is required (HH:mm).</string>
+    <string name="error_end_time_after_start">End time must be later than start time.</string>
+    <string name="error_place_required">Place is required.</string>
+    <string name="error_check_marked_fields">Check the highlighted fields ⚠️</string>
+    <string name="event_saved_simulated">Event saved (simulated) ✅</string>
+
+    <string name="pause_anthem">Pause Anthem</string>
+    <string name="play_anthem">Play Anthem</string>
+    <string name="ipn_anthem_title">IPN Anthem</string>
+    <string name="close">Close</string>
+
+    <string name="doctorate">Doctorate</string>
+    <string name="masters_administration">Master’s in Administration</string>
+    <string name="masters_computer_science">Master’s in Computer Science</string>
+    <string name="learning_units">Learning Units</string>
+
+    <string name="menu">Menu</string>
+    <string name="ipn_logo">IPN</string>
+    <string name="qr">QR</string>
+    <string name="generate_qr">Generate QR</string>
+    <string name="scan_qr">Scan QR</string>
+    <string name="version_label">Version %1$s</string>
+    <string name="logout">Log out</string>
+    <string name="welcome_to">Welcome to</string>
+    <string name="welcome_user">Welcome to, %1$s</string>
+
+    <string name="welcome">Welcome</string>
+    <string name="login_to_continue">Sign in to continue</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="logging_in">Signing in.</string>
+    <string name="login">Sign in</string>
+    <string name="pre_register">Pre-register</string>
+    <string name="forgot_password">Forgot your password?</string>
+    <string name="refresh_status">Refresh status</string>
+    <string name="checking_status">Checking status.</string>
+    <string name="request_in_process">Request in process</string>
+    <string name="preregister_sent_message">Your pre-registration has already been sent. Once it is validated, you will be able to sign in.</string>
+    <string name="request_rejected">Request rejected</string>
+    <string name="request_rejected_message">Request rejected, please contact technical support.</string>
+    <string name="error_valid_email">Enter a valid email.</string>
+    <string name="error_enter_password">Enter your password.</string>
+    <string name="error_email_not_confirmed">Your email is not confirmed yet. Check your inbox and confirm your account.</string>
+    <string name="error_invalid_credentials">Invalid credentials. Check your email and password.</string>
+    <string name="error_validate_request_status">The request status could not be validated</string>
+    <string name="error_validate_status">The status could not be validated</string>
+    <string name="error_login_failed">Sign in could not be completed.</string>
+
+</resources>

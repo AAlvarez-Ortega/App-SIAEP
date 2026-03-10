@@ -16,6 +16,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
+
 data class AgendaEventUi(
     val id: String,
     val date: LocalDate,
@@ -40,8 +43,8 @@ fun EventosPorDia(
 
     if (filtered.isEmpty()) {
         EmptyAgendaState(
-            title = "No tienes eventos para este día",
-            subtitle = "Cuando tengas clases, asesorías o recordatorios, aparecerán aquí.",
+            title = stringResource(R.string.agenda_empty_title),
+            subtitle = stringResource(R.string.agenda_empty_subtitle),
             modifier = modifier
         )
     } else {
@@ -143,6 +146,7 @@ private fun EmptyAgendaState(
 }
 
 fun demoAgendaEvents(
+    context: android.content.Context,
     primary: androidx.compose.ui.graphics.Color,
     secondary: androidx.compose.ui.graphics.Color,
     tertiary: androidx.compose.ui.graphics.Color
@@ -155,30 +159,30 @@ fun demoAgendaEvents(
             id = "1",
             date = today,
             startTime = "09:00",
-            title = "Clase: Ingeniería de Software",
-            location = "Aula 203",
-            note = "Llevar avance del documento y rúbrica.",
-            typeLabel = "Clase",
+            title = context.getString(R.string.demo_event_1_title),
+            location = context.getString(R.string.demo_event_1_location),
+            note = context.getString(R.string.demo_event_1_note),
+            typeLabel = context.getString(R.string.demo_event_1_type),
             badgeColor = primary
         ),
         AgendaEventUi(
             id = "2",
             date = today,
             startTime = "13:30",
-            title = "Asesoría: Proyecto SAES",
-            location = "Laboratorio",
-            note = "Revisar Agenda + Calendario.",
-            typeLabel = "Asesoría",
+            title = context.getString(R.string.demo_event_2_title),
+            location = context.getString(R.string.demo_event_2_location),
+            note = context.getString(R.string.demo_event_2_note),
+            typeLabel = context.getString(R.string.demo_event_2_type),
             badgeColor = secondary
         ),
         AgendaEventUi(
             id = "3",
             date = tomorrow,
             startTime = "10:15",
-            title = "Entrega: Evidencia Unidad 2",
-            location = "Plataforma",
-            note = "Subir PDF y capturas.",
-            typeLabel = "Entrega",
+            title = context.getString(R.string.demo_event_3_title),
+            location = context.getString(R.string.demo_event_3_location),
+            note = context.getString(R.string.demo_event_3_note),
+            typeLabel = context.getString(R.string.demo_event_3_type),
             badgeColor = tertiary
         )
     )
