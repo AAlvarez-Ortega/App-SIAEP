@@ -75,7 +75,6 @@ fun AgendaScreen(navController: NavController) {
         },
         onGenerateQrClick = { navController.navigate(Routes.GenerarQR) },
         onReadQrClick = { navController.navigate(Routes.ScanQR) },
-        topBarLogoRes = R.drawable.ipn,
         onConfigClick = { navController.navigate("config") },
         onLogoutClick = {
             navController.navigate(Routes.Login) {

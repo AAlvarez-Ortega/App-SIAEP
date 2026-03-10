@@ -45,11 +45,9 @@ fun AppScaffold(
     onGenerateQrClick: () -> Unit,
     onReadQrClick: () -> Unit,
     nombreUsuario: String = "Sisaap",
-    tituloTopBar: String = "Welcome to",
     versionApp: String = "1.0.0",
     onConfigClick: () -> Unit = {},
     onLogoutClick: () -> Unit,
-    topBarLogoRes: Int? = null, // (ya no lo usamos porque ahora es logo_ipn_blanco)
     navItems: List<BottomNavItem>, // 4 items (izq 2, der 2)
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
@@ -133,7 +131,7 @@ fun AppScaffold(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "$tituloTopBar, $nombreUsuario",
+                            text = "$nombreUsuario",
                             color = blanco,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis

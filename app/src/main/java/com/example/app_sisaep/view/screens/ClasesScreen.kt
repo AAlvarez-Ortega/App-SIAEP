@@ -43,7 +43,6 @@ fun ClasesScreen(navController: NavController) {
                     onReadQrClick = {
                         navController.navigate(Routes.ScanQR)
                     },
-                    topBarLogoRes = R.drawable.ipn,
                     onConfigClick = {
                         navController.navigate("config")
                     },
