@@ -18,4 +18,5 @@ object Routes {
 
     // Configuración
     const val Config = "config"
+
 }

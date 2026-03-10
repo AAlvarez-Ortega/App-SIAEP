@@ -53,7 +53,6 @@ fun CalendarioScreen(navController: NavController) {
         },
         onGenerateQrClick = { navController.navigate(Routes.GenerarQR) },
         onReadQrClick = { navController.navigate(Routes.ScanQR) },
-        topBarLogoRes = R.drawable.ipn,
         onConfigClick = { navController.navigate(Routes.Config) },
         onLogoutClick = {
             navController.navigate(Routes.Login) {

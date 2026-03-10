@@ -89,4 +89,24 @@ object AuthApp {
             Result.failure(e)
         }
     }
+
+    fun obtenerNombreUsuario(): String {
+
+        val user = SupabaseConnectionApp
+            .client
+            .auth
+            .currentUserOrNull()
+
+        val nombre = user
+            ?.userMetadata
+            ?.get("nombre")
+            ?.toString()
+            ?.replace("\"", "")
+
+        if (!nombre.isNullOrBlank()) {
+            return nombre
+        }
+
+        return user?.email ?: "Usuario"
+    }
 }

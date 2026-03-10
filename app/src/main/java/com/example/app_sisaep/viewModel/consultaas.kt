@@ -1,9 +1,11 @@
 package com.example.app_sisaep.viewModel
 
+import com.example.app_sisaep.model.dto.AvisoGlobal
 import com.example.app_sisaep.model.dto.EscuelaDto
 import com.example.app_sisaep.model.dto.SolicitudIdDto
 import com.example.app_sisaep.model.dto.SolicitudInsertDto
 import com.example.app_sisaep.model.supabase.SupabaseConnection
+import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Order
 
@@ -72,5 +74,14 @@ object consultaas {
             .decodeList<Map<String, String?>>()
 
         return result.firstOrNull()?.get("estado")
+    }
+
+
+    suspend fun obtenerAvisosActivos(): List<AvisoGlobal> {
+
+        return SupabaseConnectionApp.client
+            .from("avisos_globales")
+            .select()
+            .decodeList<AvisoGlobal>()
     }
 }

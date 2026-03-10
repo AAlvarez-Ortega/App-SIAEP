@@ -53,5 +53,6 @@ fun AppNavHost(navController: NavHostController) {
         composable(Routes.Config) {
             ConfigScreen(navController = navController)
         }
+
     }
 }
