@@ -78,10 +78,13 @@ object consultaas {
 
 
     suspend fun obtenerAvisosActivos(): List<AvisoGlobal> {
-
         return SupabaseConnectionApp.client
             .from("avisos_globales")
-            .select()
+            .select {
+                filter {
+                    eq("estado", "activo")
+                }
+            }
             .decodeList<AvisoGlobal>()
     }
 }

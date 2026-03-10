@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.storage.kt)
     implementation(libs.realtime.kt)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("io.github.jan-tennert.supabase:realtime-kt:2.5.4")
 
     // Ktor (solo 1 engine)
     implementation(libs.ktor.client.okhttp)

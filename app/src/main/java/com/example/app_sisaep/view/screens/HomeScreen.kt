@@ -25,7 +25,6 @@ import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.view.screens.avsos.FormularioAviso
 import com.example.app_sisaep.view.screens.noticias.InicioNoticias
 import com.example.app_sisaep.viewModel.AuthApp.obtenerNombreUsuario
-import com.example.app_sisaep.viewModel.consultaas.obtenerAvisosActivos
 import com.example.app_sisaep.viewModel.crearAviso
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
@@ -35,7 +34,9 @@ import kotlinx.coroutines.launch
 fun HomeScreen(navController: NavController) {
 
     var selectedIndex by remember { mutableIntStateOf(0) }
+
     var esAdmin by remember { mutableStateOf(false) }
+
     var mostrarFormularioAviso by remember { mutableStateOf(false) }
 
     var avisoActual by remember { mutableStateOf<AvisoGlobal?>(null) }
@@ -49,14 +50,12 @@ fun HomeScreen(navController: NavController) {
 
         nombreUsuario = obtenerNombreUsuario()
 
-        // Verificar si el usuario es personal administrativo
+        // Verificar si el usuario está en personal_administrativo
         try {
 
             val user = SupabaseConnectionApp.client.auth.currentUserOrNull()
 
             if (user != null) {
-
-                println("USER ID APP: ${user.id}")
 
                 val resultado = SupabaseConnectionApp.client
                     .from("personal_administrativo")
@@ -64,16 +63,18 @@ fun HomeScreen(navController: NavController) {
                         filter {
                             eq("id", user.id)
                         }
-                        limit(1)
                     }
                     .decodeList<Map<String, String>>()
 
+                println("USER ID: ${user.id}")
                 println("RESULTADO ADMIN: $resultado")
 
                 esAdmin = resultado.isNotEmpty()
 
             } else {
+
                 esAdmin = false
+
             }
 
         } catch (e: Exception) {
@@ -83,19 +84,8 @@ fun HomeScreen(navController: NavController) {
 
         }
 
+        println("USER ID: ${SupabaseConnectionApp.client.auth.currentUserOrNull()?.id}")
         println("ES ADMIN: $esAdmin")
-
-        // Obtener avisos activos
-        try {
-
-            val avisos = obtenerAvisosActivos()
-
-            if (avisos.isNotEmpty()) {
-                avisoActual = avisos.first()
-                mostrarAviso = true
-            }
-
-        } catch (_: Exception) {}
 
     }
 
@@ -112,12 +102,15 @@ fun HomeScreen(navController: NavController) {
             onDismissRequest = { mostrarAviso = false },
 
             confirmButton = {
-                Button(onClick = { mostrarAviso = false }) {
+                Button(
+                    onClick = { mostrarAviso = false }
+                ) {
                     Text("Entendido")
                 }
             },
 
             title = { Text(avisoActual!!.titulo) },
+
             text = { Text(avisoActual!!.mensaje) }
         )
 
@@ -165,11 +158,12 @@ fun HomeScreen(navController: NavController) {
 
         floatingActionButton = {
 
-            // Solo mostrar si es admin
             if (esAdmin && !mostrarFormularioAviso) {
 
                 FloatingActionButton(
-                    onClick = { mostrarFormularioAviso = true }
+                    onClick = {
+                        mostrarFormularioAviso = true
+                    }
                 ) {
 
                     Icon(
