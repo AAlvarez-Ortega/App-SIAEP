@@ -17,22 +17,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.R
 
+import androidx.compose.ui.res.stringResource
+
 // 🔹 Modelo reutilizable
 data class Actividad(val nombre: String, val iconRes: Int)
 
 @Composable
 fun ActividadesCulturalesSection() {
     Text(
-        text = "Actividades culturales",
+        text = stringResource(R.string.cultural_activities),
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(bottom = 8.dp)
     )
 
     val actividades = listOf(
-        Actividad("Teatro", R.drawable.ic_teatro),
-        Actividad("Música", R.drawable.ic_musica),
-        Actividad("Danza", R.drawable.ic_danza),
-        Actividad("Fotografía", R.drawable.ic_fotografia)
+        Actividad(stringResource(R.string.activity_theater), R.drawable.ic_teatro),
+        Actividad(stringResource(R.string.activity_music), R.drawable.ic_musica),
+        Actividad(stringResource(R.string.activity_dance), R.drawable.ic_danza),
+        Actividad(stringResource(R.string.activity_photography), R.drawable.ic_fotografia)
     )
 
     LazyRow(

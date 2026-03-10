@@ -109,7 +109,7 @@ fun GenerarQrScreen(navController: NavController) {
             navController.navigate(Routes.ScanQR)
         },
         nombreUsuario = "Usuario", // luego lo jalamos real
-        tituloTopBar = "Código QR",
+
         topBarLogoRes = R.drawable.ipn,
         onConfigClick = {
             navController.navigate(Routes.Config)

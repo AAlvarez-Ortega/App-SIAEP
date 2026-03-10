@@ -1,3 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+
 <resources>
     <string name="app_name">App_SISAEP</string>
+
+        <string name="settings">Configuración</string>
+        <string name="language">Idioma</string>
+        <string name="spanish">Español</string>
+        <string name="english">English</string>
+    <string name="news">Noticias</string>
+    <string name="sports">Deportes</string>
+
+    <string name="news_call">Nueva convocatoria</string>
+    <string name="news_payment">Pago de reinscripción</string>
+    <string name="news_workshops">Talleres disponibles</string>
+    <string name="news_event">Evento cultural</string>
+    <string name="news_notice">Aviso importante</string>
+
+    <string name="sport_football_americano">Fútbol americano</string>
+    <string name="sport_football">Fútbol</string>
+    <string name="sport_basketball">Baloncesto</string>
+    <string name="sport_tocho">Tocho bandera</string>
+
+    <string name="cultural_activities">Actividades culturales</string>
+    <string name="activity_theater">Teatro</string>
+    <string name="activity_music">Música</string>
+    <string name="activity_dance">Danza</string>
+    <string name="activity_photography">Fotografía</string>
+
+    <string name="home">Inicio</string>
+    <string name="calendar">Calendario</string>
+    <string name="agenda">Agenda</string>
+    <string name="classes">Clases</string>
+
+    <string name="school_calendar">Calendario escolar</string>
+
+    <string name="back_to_events">Volver a eventos</string>
+    <string name="new_event">Nuevo evento</string>
+    <string name="view_schedule">Ver horario</string>
+
+    <string name="previous_month">Mes anterior</string>
+    <string name="next_month">Mes siguiente</string>
+
+    <string name="agenda_empty_title">No tienes eventos para este día</string>
+    <string name="agenda_empty_subtitle">Cuando tengas clases, asesorías o recordatorios, aparecerán aquí.</string>
+
+    <string name="demo_event_1_title">Clase: Ingeniería de Software</string>
+    <string name="demo_event_1_location">Aula 203</string>
+    <string name="demo_event_1_note">Llevar avance del documento y rúbrica.</string>
+    <string name="demo_event_1_type">Clase</string>
+
+    <string name="demo_event_2_title">Asesoría: Proyecto SAES</string>
+    <string name="demo_event_2_location">Laboratorio</string>
+    <string name="demo_event_2_note">Revisar Agenda + Calendario.</string>
+    <string name="demo_event_2_type">Asesoría</string>
+
+    <string name="demo_event_3_title">Entrega: Evidencia Unidad 2</string>
+    <string name="demo_event_3_location">Plataforma</string>
+    <string name="demo_event_3_note">Subir PDF y capturas.</string>
+    <string name="demo_event_3_type">Entrega</string>
+
+    <string name="school_schedule">Horario escolar</string>
+
+    <string name="event_type_class">Clase</string>
+    <string name="event_type_tutoring">Asesoría</string>
+    <string name="event_type_reminder">Recordatorio</string>
+    <string name="title">Título</string>
+    <string name="start_time">Hora inicio</string>
+    <string name="end_time">Hora fin</string>
+    <string name="place">Lugar</string>
+    <string name="place_placeholder">Aula 203 / Laboratorio / Online</string>
+    <string name="notes">Notas</string>
+    <string name="event_details_placeholder">Detalles del evento…</string>
+    <string name="save">Guardar</string>
+
+    <string name="error_title_required">El título es obligatorio.</string>
+    <string name="error_start_time_required">Hora inicio obligatoria (HH:mm).</string>
+    <string name="error_invalid_time_format">Formato inválido. Usa HH:mm (ej. 09:00).</string>
+    <string name="error_end_time_required">Hora fin obligatoria (HH:mm).</string>
+    <string name="error_end_time_after_start">La hora fin debe ser mayor a la hora inicio.</string>
+    <string name="error_place_required">El lugar es obligatorio.</string>
+    <string name="error_check_marked_fields">Revisa los campos marcados ⚠️</string>
+    <string name="event_saved_simulated">Evento guardado (simulado) ✅</string>
+
+    <string name="pause_anthem">Pausar Himno</string>
+    <string name="play_anthem">Reproducir Himno</string>
+    <string name="ipn_anthem_title">Himno del IPN</string>
+    <string name="close">Cerrar</string>
+
+    <string name="doctorate">Doctorado</string>
+    <string name="masters_administration">Maestría en Administración</string>
+    <string name="masters_computer_science">Maestría en Informática</string>
+    <string name="learning_units">Unidades de Aprendizaje</string>
+
+    <string name="menu">Menú</string>
+    <string name="ipn_logo">IPN</string>
+    <string name="qr">QR</string>
+    <string name="generate_qr">Generar QR</string>
+    <string name="scan_qr">Escanear QR</string>
+    <string name="version_label">Versión %1$s</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="welcome_to">Bienvenido a</string>
+    <string name="welcome_user">Bienvenido a, %1$s</string>
+
+    <string name="welcome">Bienvenido</string>
+    <string name="login_to_continue">Inicia sesión para continuar</string>
+    <string name="email">Correo</string>
+    <string name="password">Contraseña</string>
+    <string name="logging_in">Iniciando.</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="pre_register">Pre-registrarme</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="refresh_status">Actualizar estatus</string>
+    <string name="checking_status">Verificando estatus.</string>
+    <string name="request_in_process">Solicitud en proceso</string>
+    <string name="preregister_sent_message">Tu pre-registro ya fue enviado. Cuando sea validado podrás iniciar sesión.</string>
+    <string name="request_rejected">Solicitud rechazada</string>
+    <string name="request_rejected_message">Solicitud rechazada, ponte en contacto con soporte técnico.</string>
+    <string name="error_valid_email">Ingresa un correo válido.</string>
+    <string name="error_enter_password">Ingresa tu contraseña.</string>
+    <string name="error_email_not_confirmed">Tu correo aún no está confirmado. Revisa tu email y confirma tu cuenta.</string>
+    <string name="error_invalid_credentials">Credenciales inválidas. Verifica tu correo y contraseña.</string>
+    <string name="error_validate_request_status">No se pudo validar el estatus de la solicitud</string>
+    <string name="error_validate_status">No se pudo validar el estatus</string>
+    <string name="error_login_failed">No se pudo iniciar sesión.</string>
+
 </resources>

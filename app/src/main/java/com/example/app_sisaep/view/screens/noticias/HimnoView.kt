@@ -30,6 +30,8 @@ import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import com.example.app_sisaep.R
+
+import androidx.compose.ui.res.stringResource
 // Modelo del JSON
 data class KaraokeLine(val timeMs: Int, val line: String)
 
@@ -143,7 +145,11 @@ fun HimnoIPNCard(isPlaying: MutableState<Boolean>) {
                 }) {
                     Icon(
                         imageVector = if (isPlaying.value) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying.value) "Pausar Himno" else "Reproducir Himno",
+                        contentDescription = if (isPlaying.value) {
+                            stringResource(R.string.pause_anthem)
+                        } else {
+                            stringResource(R.string.play_anthem)
+                        },
                         tint = Color.White,
                         modifier = Modifier.size(32.dp)
                     )
@@ -168,7 +174,7 @@ fun HimnoIPNCard(isPlaying: MutableState<Boolean>) {
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Himno del IPN",
+                            text = stringResource(R.string.ipn_anthem_title),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color(0xFF7F1E57)
                     )
@@ -187,7 +193,7 @@ fun HimnoIPNCard(isPlaying: MutableState<Boolean>) {
                             contentColor = Color.White
                         )
                     ) {
-                        Text("Cerrar")
+                        Text(stringResource(R.string.close))
                     }
                 }
             }

@@ -18,6 +18,8 @@ import com.example.app_sisaep.R
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.view.screens.noticias.InicioNoticias
 
+import androidx.compose.ui.res.stringResource
+
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -25,10 +27,10 @@ fun HomeScreen(navController: NavController) {
     var selectedIndex by remember { mutableIntStateOf(0) }
 
     val navItems = listOf(
-        BottomNavItem("Inicio") { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
-        BottomNavItem("Calendario") { androidx.compose.material3.Icon(Icons.Filled.CalendarMonth, null) },
-        BottomNavItem("Agenda") { androidx.compose.material3.Icon(Icons.Filled.Schedule, null) },
-        BottomNavItem("Clases") { androidx.compose.material3.Icon(Icons.Filled.School, null) },
+        BottomNavItem(stringResource(R.string.home)) { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
+        BottomNavItem(stringResource(R.string.calendar)) { androidx.compose.material3.Icon(Icons.Filled.CalendarMonth, null) },
+        BottomNavItem(stringResource(R.string.agenda)) { androidx.compose.material3.Icon(Icons.Filled.Schedule, null) },
+        BottomNavItem(stringResource(R.string.classes)) { androidx.compose.material3.Icon(Icons.Filled.School, null) },
     )
 
     AppScaffold(

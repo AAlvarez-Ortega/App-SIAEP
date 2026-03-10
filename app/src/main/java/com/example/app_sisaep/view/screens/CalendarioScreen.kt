@@ -2,6 +2,7 @@ package com.example.app_sisaep.view.screens
 
 
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -27,14 +28,17 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.max
 
+import androidx.compose.ui.res.stringResource
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun CalendarioScreen(navController: NavController) {
 
     val navItems = listOf(
-        BottomNavItem("Inicio") { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
-        BottomNavItem("Calendario") { androidx.compose.material3.Icon(Icons.Filled.CalendarMonth, null) },
-        BottomNavItem("Agenda") { androidx.compose.material3.Icon(Icons.Filled.Schedule, null) },
-        BottomNavItem("Clases") { androidx.compose.material3.Icon(Icons.Filled.School, null) },
+        BottomNavItem(stringResource(R.string.home)) { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
+        BottomNavItem(stringResource(R.string.calendar)) { androidx.compose.material3.Icon(Icons.Filled.CalendarMonth, null) },
+        BottomNavItem(stringResource(R.string.agenda)) { androidx.compose.material3.Icon(Icons.Filled.Schedule, null) },
+        BottomNavItem(stringResource(R.string.classes)) { androidx.compose.material3.Icon(Icons.Filled.School, null) },
     )
 
     AppScaffold(
@@ -117,7 +121,7 @@ fun CalendarioScreen(navController: NavController) {
 
                         .crossfade(true)
                         .build(),
-                    contentDescription = "Calendario escolar",
+                    contentDescription = stringResource(R.string.school_calendar),
                     modifier = Modifier
                         .fillMaxSize() // ✅ ocupa toda la pantalla
                         .graphicsLayer(

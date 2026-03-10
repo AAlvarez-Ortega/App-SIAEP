@@ -16,22 +16,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.app_sisaep.R
 
 @Composable
 fun NoticiasSection() {
     Text(
-        text = "Noticias",
+        text = stringResource(R.string.news),
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(bottom = 8.dp)
     )
 
     val noticias = listOf(
-        "Nueva convocatoria",
-        "Pago de reinscripción",
-        "Talleres disponibles",
-        "Evento cultural",
-        "Aviso importante"
+        stringResource(R.string.news_call),
+        stringResource(R.string.news_payment),
+        stringResource(R.string.news_workshops),
+        stringResource(R.string.news_event),
+        stringResource(R.string.news_notice)
     )
 
     LazyRow(
