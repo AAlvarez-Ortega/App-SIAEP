@@ -6,7 +6,7 @@
         <string name="settings">Configuración</string>
         <string name="language">Idioma</string>
         <string name="spanish">Español</string>
-        <string name="english">English</string>
+        <string name="english">Inglés</string>
     <string name="news">Noticias</string>
     <string name="sports">Deportes</string>
 
@@ -123,5 +123,54 @@
     <string name="error_validate_request_status">No se pudo validar el estatus de la solicitud</string>
     <string name="error_validate_status">No se pudo validar el estatus</string>
     <string name="error_login_failed">No se pudo iniciar sesión.</string>
+
+    <string name="pre_register_title">Pre-registro</string>
+    <string name="access_request_title">Solicitud de acceso</string>
+    <string name="access_request_description">Completa tus datos para enviar tu solicitud. La validación se realizará por la plataforma.</string>
+
+    <string name="step_personal_title">Datos personales</string>
+    <string name="step_personal_subtitle">Asegúrate de escribirlos tal como aparecen en tus documentos.</string>
+    <string name="step_contact_title">Contacto</string>
+    <string name="step_contact_subtitle">Usaremos este correo para notificaciones del proceso.</string>
+    <string name="step_school_title">Institución</string>
+    <string name="step_school_subtitle">Selecciona la escuela a la que perteneces.</string>
+
+    <string name="required">Requerido</string>
+    <string name="employee_or_student_number_error">Debe tener 8, 9 o 10 dígitos</string>
+    <string name="invalid_email">Correo inválido</string>
+    <string name="curp_length_error">Debe tener 18 caracteres</string>
+    <string name="select_school_error">Selecciona una escuela</string>
+
+    <string name="schools_load_error">No se pudieron cargar las escuelas</string>
+    <string name="continue_error_title">No se pudo continuar</string>
+
+    <string name="name_label">Nombre</string>
+    <string name="last_name_label">Apellido paterno</string>
+    <string name="middle_name_label">Apellido materno</string>
+    <string name="student_or_employee_number_label">Boleta o número de empleado</string>
+    <string name="email_label">Correo</string>
+    <string name="curp_label">CURP (18 caracteres)</string>
+    <string name="school_label">Escuela</string>
+
+    <string name="validation_process_message">Al enviar tu solicitud, se iniciará el proceso de validación.</string>
+
+    <string name="duplicate_request_error">Ya existe una solicitud en proceso con estos datos.</string>
+    <string name="submit_request_error">No se pudo enviar la solicitud</string>
+
+    <string name="back_button">Atrás</string>
+    <string name="next_button">Siguiente</string>
+    <string name="sending_button">Enviando...</string>
+    <string name="submit_request_button">Enviar solicitud</string>
+    <string name="back_to_login">Volver al login</string>
+
+    <string name="step_counter">Paso %1$d de %2$d</string>
+    <string name="step_chip_format">%1$d.\u00A0%2$s</string>
+    <string name="step_chip_personal_multiline">Datos\npersonales</string>
+
+    <string name="language_description">Selecciona el idioma de la aplicación</string>
+    <string name="appearance">Apariencia</string>
+    <string name="appearance_description">Personaliza cómo se ve la aplicación</string>
+    <string name="dark_mode">Modo oscuro</string>
+    <string name="dark_mode_description">Activa un tema oscuro para toda la app</string>
 
 </resources>

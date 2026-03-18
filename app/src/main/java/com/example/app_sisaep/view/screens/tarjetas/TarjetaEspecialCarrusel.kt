@@ -1,36 +1,73 @@
 package com.example.app_sisaep.view.screens.tarjetas
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import com.example.app_sisaep.R
 import com.example.app_sisaep.view.screens.noticias.HimnoIPNCard
-
-import androidx.compose.ui.res.stringResource
 
 @Composable
 fun TarjetasEspecialesCarrusel() {
     val tarjetas = listOf(
-        CardData(stringResource(R.string.ipn_anthem_title), Color(0xFF7F1E57), R.drawable.logo_ipn_blanco, CardType.HIMNO),
-        CardData(stringResource(R.string.doctorate), Color(0xFF388E3C), R.drawable.ic_doctorado),
-        CardData(stringResource(R.string.masters_administration), Color(0xFF1976D2), R.drawable.ic_maestria_admin),
-        CardData(stringResource(R.string.masters_computer_science), Color(0xFFFBC02D), R.drawable.ic_maestria_info),
-        CardData(stringResource(R.string.learning_units), Color(0xFF8E24AA), R.drawable.ic_unidades)
+        CardData(
+            stringResource(R.string.ipn_anthem_title),
+            Color(0xFF7F1E57),
+            R.drawable.logo_ipn_blanco,
+            CardType.HIMNO
+        ),
+        CardData(
+            stringResource(R.string.doctorate),
+            Color(0xFF388E3C),
+            R.drawable.ic_doctorado
+        ),
+        CardData(
+            stringResource(R.string.masters_administration),
+            Color(0xFF1976D2),
+            R.drawable.ic_maestria_admin
+        ),
+        CardData(
+            stringResource(R.string.masters_computer_science),
+            Color(0xFFFBC02D),
+            R.drawable.ic_maestria_info
+        ),
+        CardData(
+            stringResource(R.string.learning_units),
+            Color(0xFF8E24AA),
+            R.drawable.ic_unidades
+        )
     )
 
     val listState = rememberLazyListState()
     val currentIndex by remember { derivedStateOf { listState.firstVisibleItemIndex } }
-
-    // Estado compartido del himno 🎶
     val isPlaying = remember { mutableStateOf(false) }
+
+    val activeDotColor = Color(0xFF7F1E57)
+    val inactiveDotColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         LazyRow(
@@ -49,13 +86,13 @@ fun TarjetasEspecialesCarrusel() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // === Indicadores (puntitos) ===
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(tarjetas.size) { index ->
-                val dotColor = if (index == currentIndex) Color(0xFF7F1E57) else Color.LightGray
+                val dotColor = if (index == currentIndex) activeDotColor else inactiveDotColor
+
                 Box(
                     modifier = Modifier
                         .padding(4.dp)
@@ -77,4 +114,3 @@ private fun HimnoCardWrapper(isPlaying: MutableState<Boolean>) {
         HimnoIPNCard(isPlaying = isPlaying)
     }
 }
-

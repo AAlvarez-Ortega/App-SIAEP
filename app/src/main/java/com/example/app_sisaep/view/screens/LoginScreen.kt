@@ -13,29 +13,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.app_sisaep.R
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.viewModel.AuthApp
 import com.example.app_sisaep.viewModel.RecordarSesion
 import com.example.app_sisaep.viewModel.estatus
 import kotlinx.coroutines.launch
 
-import androidx.compose.ui.res.stringResource
-import com.example.app_sisaep.R
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
-
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // ✅ ahora guardamos estado real (no boolean)
     var estadoSolicitud by remember { mutableStateOf(estatus.EstadoSolicitud.NO_EXISTE) }
     var checkingStatus by remember { mutableStateOf(true) }
     var statusError by remember { mutableStateOf<String?>(null) }
@@ -48,7 +45,6 @@ fun LoginScreen(navController: NavController) {
         return v.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(v).matches()
     }
 
-    // ✅ 1) Revisar sesión REAL (Supabase) al abrir la pantalla
     LaunchedEffect(Unit) {
         val haySesion = try {
             RecordarSesion.esperarSesion(timeoutMs = 2500L, tickMs = 150L)
@@ -63,7 +59,6 @@ fun LoginScreen(navController: NavController) {
             return@LaunchedEffect
         }
 
-        // ✅ 2) Si NO hay sesión, consulta estatus (nuevo)
         checkingStatus = true
         statusError = null
         try {
@@ -82,9 +77,14 @@ fun LoginScreen(navController: NavController) {
 
     val bloqueado = bloqueadoPorEstado || checkingStatus || isLoggingIn
 
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
+    val secondaryTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+    val inactiveTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF9F9F9)
+        color = backgroundColor
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -93,11 +93,10 @@ fun LoginScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
         ) {
-
             Text(
                 text = stringResource(R.string.welcome),
                 style = MaterialTheme.typography.headlineSmall,
-                color = Color.Black
+                color = onBackgroundColor
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -105,7 +104,7 @@ fun LoginScreen(navController: NavController) {
             Text(
                 text = stringResource(R.string.login_to_continue),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF444444)
+                color = secondaryTextColor
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -114,12 +113,16 @@ fun LoginScreen(navController: NavController) {
                 AssistChip(
                     onClick = {},
                     enabled = false,
-                    label = { Text(stringResource(R.string.checking_status)) }
+                    label = {
+                        Text(
+                            text = stringResource(R.string.checking_status),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // ✅ Mensajes según estado
             when (estadoSolicitud) {
                 estatus.EstadoSolicitud.PENDIENTE -> {
                     Card(
@@ -165,7 +168,7 @@ fun LoginScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                else -> Unit // ACEPTADO o NO_EXISTE: no mostramos card
+                else -> Unit
             }
 
             statusError?.let {
@@ -200,10 +203,18 @@ fun LoginScreen(navController: NavController) {
                 isError = email.isNotBlank() && !isValidEmail(email),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF7A003C),
-                    unfocusedBorderColor = Color.LightGray,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                     cursorColor = Color(0xFF7A003C),
                     errorBorderColor = MaterialTheme.colorScheme.error,
-                    focusedLabelColor = Color(0xFF7A003C)
+                    focusedLabelColor = Color(0xFF7A003C),
+                    unfocusedLabelColor = inactiveTextColor,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLeadingIconColor = Color(0xFF7A003C),
+                    unfocusedLeadingIconColor = inactiveTextColor,
+                    disabledTextColor = inactiveTextColor,
+                    disabledLabelColor = inactiveTextColor,
+                    disabledLeadingIconColor = inactiveTextColor
                 )
             )
 
@@ -221,10 +232,18 @@ fun LoginScreen(navController: NavController) {
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF7A003C),
-                    unfocusedBorderColor = Color.LightGray,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                     cursorColor = Color(0xFF7A003C),
                     errorBorderColor = MaterialTheme.colorScheme.error,
-                    focusedLabelColor = Color(0xFF7A003C)
+                    focusedLabelColor = Color(0xFF7A003C),
+                    unfocusedLabelColor = inactiveTextColor,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLeadingIconColor = Color(0xFF7A003C),
+                    unfocusedLeadingIconColor = inactiveTextColor,
+                    disabledTextColor = inactiveTextColor,
+                    disabledLabelColor = inactiveTextColor,
+                    disabledLeadingIconColor = inactiveTextColor
                 )
             )
 
@@ -301,7 +320,10 @@ fun LoginScreen(navController: NavController) {
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(stringResource(R.string.logging_in))
                 } else {
-                    Text(stringResource(R.string.login), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = stringResource(R.string.login),
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
 
@@ -313,7 +335,7 @@ fun LoginScreen(navController: NavController) {
             ) {
                 Text(
                     text = stringResource(R.string.pre_register),
-                    color = if (bloqueado) Color.Gray else Color(0xFF7A003C),
+                    color = if (bloqueado) inactiveTextColor else Color(0xFF7A003C),
                     modifier = Modifier.clickable(enabled = !bloqueado) {
                         navController.navigate(Routes.PreRegistro)
                     }
@@ -321,7 +343,7 @@ fun LoginScreen(navController: NavController) {
 
                 Text(
                     text = stringResource(R.string.forgot_password),
-                    color = if (bloqueado) Color.Gray else Color(0xFF7A003C),
+                    color = if (bloqueado) inactiveTextColor else Color(0xFF7A003C),
                     modifier = Modifier.clickable(enabled = !bloqueado) {
                         // luego: AuthApp.resetPassword(email)
                     }
@@ -351,3 +373,5 @@ fun LoginScreen(navController: NavController) {
         }
     }
 }
+
+

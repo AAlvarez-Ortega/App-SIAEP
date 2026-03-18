@@ -1,6 +1,13 @@
 package com.example.app_sisaep.view.screens.noticias
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -14,12 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.R
 
-import androidx.compose.ui.res.stringResource
-
-// 🔹 Modelo reutilizable
 data class Actividad(val nombre: String, val iconRes: Int)
 
 @Composable
@@ -27,6 +32,7 @@ fun ActividadesCulturalesSection() {
     Text(
         text = stringResource(R.string.cultural_activities),
         style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.padding(bottom = 8.dp)
     )
 
@@ -56,9 +62,9 @@ fun ActividadCard(actividad: Actividad) {
             modifier = Modifier.size(100.dp),
             shape = CircleShape,
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF4CAF50) // guinda opaco
+                containerColor = Color(0xFF4CAF50)
             ),
-            elevation = CardDefaults.cardElevation(0.dp) // sin borde facetado
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -78,9 +84,7 @@ fun ActividadCard(actividad: Actividad) {
         Text(
             text = actividad.nombre,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
-
-

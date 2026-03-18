@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.R
+
 data class Deporte(val nombre: String, val iconRes: Int)
 
 @Composable
@@ -24,6 +25,7 @@ fun DeportesSection() {
     Text(
         text = stringResource(R.string.sports),
         style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground, // 🔥 FIX
         modifier = Modifier.padding(bottom = 8.dp)
     )
 
@@ -53,9 +55,9 @@ fun DeporteCard(deporte: Deporte) {
             modifier = Modifier.size(100.dp),
             shape = CircleShape,
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF4CAF50) // guinda IPN opaco uniforme
+                containerColor = Color(0xFF4CAF50)
             ),
-            elevation = CardDefaults.cardElevation(0.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -75,9 +77,7 @@ fun DeporteCard(deporte: Deporte) {
         Text(
             text = deporte.nombre,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground // 🔥 FIX
         )
     }
 }
-
-
