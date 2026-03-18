@@ -124,4 +124,52 @@
     <string name="error_validate_status">The status could not be validated</string>
     <string name="error_login_failed">Sign in could not be completed.</string>
 
+    <string name="pre_register_title">Pre-registration</string>
+    <string name="access_request_title">Access request</string>
+    <string name="access_request_description">Complete your information to submit your request. Validation will be carried out by the platform.</string>
+
+    <string name="step_personal_title">Personal information</string>
+    <string name="step_personal_subtitle">Make sure to enter them exactly as they appear on your documents.</string>
+    <string name="step_contact_title">Contact</string>
+    <string name="step_contact_subtitle">We will use this email for process notifications.</string>
+    <string name="step_school_title">Institution</string>
+    <string name="step_school_subtitle">Select the school you belong to.</string>
+
+    <string name="required">Required</string>
+    <string name="employee_or_student_number_error">Must be 8, 9, or 10 digits</string>
+    <string name="invalid_email">Invalid email</string>
+    <string name="curp_length_error">Must be 18 characters</string>
+    <string name="select_school_error">Select a school</string>
+
+    <string name="schools_load_error">Schools could not be loaded</string>
+    <string name="continue_error_title">Could not continue</string>
+
+    <string name="name_label">First name</string>
+    <string name="last_name_label">Last name</string>
+    <string name="middle_name_label">Mother’s last name</string>
+    <string name="student_or_employee_number_label">Student ID or employee number</string>
+    <string name="email_label">Email</string>
+    <string name="curp_label">CURP (18 characters)</string>
+    <string name="school_label">School</string>
+
+    <string name="validation_process_message">When you submit your request, the validation process will begin.</string>
+
+    <string name="duplicate_request_error">A request with this information is already in process.</string>
+    <string name="submit_request_error">The request could not be submitted</string>
+
+    <string name="back_button">Back</string>
+    <string name="next_button">Next</string>
+    <string name="sending_button">Sending...</string>
+    <string name="submit_request_button">Submit request</string>
+    <string name="back_to_login">Back to login</string>
+
+    <string name="step_counter">Step %1$d of %2$d</string>
+    <string name="step_chip_format">%1$d.\u00A0%2$s</string>
+    <string name="step_chip_personal_multiline">Personal\ninformation</string>
+
+    <string name="language_description">Select the application language</string><string name="appearance">Appearance</string>
+    <string name="appearance_description">Customize how the application looks</string>
+    <string name="dark_mode">Dark mode</string>
+    <string name="dark_mode_description">Enable a dark theme for the whole app</string>
+
 </resources>

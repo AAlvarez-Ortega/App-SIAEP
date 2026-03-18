@@ -7,7 +7,11 @@ import androidx.navigation.compose.composable
 import com.example.app_sisaep.view.screens.*
 
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(
+    navController: NavHostController,
+    darkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit
+) {
 
     NavHost(
         navController = navController,
@@ -51,7 +55,11 @@ fun AppNavHost(navController: NavHostController) {
 
         // ⚙️ Config
         composable(Routes.Config) {
-            ConfigScreen(navController = navController)
+            ConfigScreen(
+                navController = navController,
+                darkMode = darkMode,
+                onDarkModeChange = onDarkModeChange
+            )
         }
 
     }

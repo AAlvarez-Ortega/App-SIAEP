@@ -59,6 +59,13 @@ fun AppScaffold(
     val guindaIPN = Color(0xFF7A003C)
     val blanco = Color.White
 
+    val drawerBackground = MaterialTheme.colorScheme.surface
+    val drawerTextColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val scaffoldBackground = MaterialTheme.colorScheme.background
+    val qrCenterButtonBackground = MaterialTheme.colorScheme.surface
+    val qrCenterButtonIcon = guindaIPN
+
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var qrMenuExpanded by remember { mutableStateOf(false) }
@@ -73,12 +80,13 @@ fun AppScaffold(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(300.dp)
-                    .background(Color(0xFFF3F3F3))
+                    .background(drawerBackground)
                     .padding(16.dp)
             ) {
                 Text(
-                    stringResource(R.string.menu),
-                    style = MaterialTheme.typography.titleLarge
+                    text = stringResource(R.string.menu),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = drawerTextColor
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -88,7 +96,11 @@ fun AppScaffold(
                         scope.launch { drawerState.close() }
                         onConfigClick()
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = guindaIPN,
+                        contentColor = blanco
+                    )
                 ) {
                     Text(stringResource(R.string.settings))
                 }
@@ -107,13 +119,11 @@ fun AppScaffold(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
                     )
                 ) {
-                    Text(
-                        stringResource(R.string.logout),
-                        color = MaterialTheme.colorScheme.onError
-                    )
+                    Text(stringResource(R.string.logout))
                 }
 
                 Spacer(Modifier.height(12.dp))
@@ -122,13 +132,14 @@ fun AppScaffold(
                     text = stringResource(R.string.version_label, versionApp),
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = secondaryTextColor
                 )
             }
         }
     ) {
         Scaffold(
             contentWindowInsets = WindowInsets.safeDrawing,
+            containerColor = scaffoldBackground,
             topBar = {
                 TopAppBar(
                     title = {
@@ -168,7 +179,9 @@ fun AppScaffold(
                 )
             },
             bottomBar = {
-                NavigationBar(containerColor = guindaIPN) {
+                NavigationBar(
+                    containerColor = guindaIPN
+                ) {
                     @Composable
                     fun NavLabel(text: String) {
                         Text(
@@ -209,7 +222,7 @@ fun AppScaffold(
                             .offset(y = (-3).dp)
                             .shadow(10.dp, CircleShape)
                             .clip(CircleShape)
-                            .background(Color.White),
+                            .background(qrCenterButtonBackground),
                         contentAlignment = Alignment.Center
                     ) {
                         IconButton(
@@ -218,7 +231,7 @@ fun AppScaffold(
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,
                                 contentDescription = stringResource(R.string.qr),
-                                tint = Color(0xFF7A003C),
+                                tint = qrCenterButtonIcon,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -251,7 +264,11 @@ fun AppScaffold(
             },
             floatingActionButton = floatingActionButton
         ) { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(scaffoldBackground)
+            ) {
                 content(paddingValues)
 
                 if (qrMenuExpanded) {
@@ -291,8 +308,8 @@ fun AppScaffold(
                                 },
                                 modifier = Modifier.width(220.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF7A003C),
-                                    contentColor = Color.White
+                                    containerColor = guindaIPN,
+                                    contentColor = blanco
                                 )
                             ) {
                                 Icon(

@@ -1,6 +1,5 @@
 package com.example.app_sisaep.view.screens
 
-
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -13,24 +12,29 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.example.app_sisaep.R
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.view.screens.noticias.InicioNoticias
 
-import androidx.compose.ui.res.stringResource
-
-
 @Composable
 fun HomeScreen(navController: NavController) {
-
     var selectedIndex by remember { mutableIntStateOf(0) }
 
     val navItems = listOf(
-        BottomNavItem(stringResource(R.string.home)) { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
-        BottomNavItem(stringResource(R.string.calendar)) { androidx.compose.material3.Icon(Icons.Filled.CalendarMonth, null) },
-        BottomNavItem(stringResource(R.string.agenda)) { androidx.compose.material3.Icon(Icons.Filled.Schedule, null) },
-        BottomNavItem(stringResource(R.string.classes)) { androidx.compose.material3.Icon(Icons.Filled.School, null) },
+        BottomNavItem(stringResource(R.string.home)) {
+            androidx.compose.material3.Icon(Icons.Filled.Home, contentDescription = null)
+        },
+        BottomNavItem(stringResource(R.string.calendar)) {
+            androidx.compose.material3.Icon(Icons.Filled.CalendarMonth, contentDescription = null)
+        },
+        BottomNavItem(stringResource(R.string.agenda)) {
+            androidx.compose.material3.Icon(Icons.Filled.Schedule, contentDescription = null)
+        },
+        BottomNavItem(stringResource(R.string.classes)) {
+            androidx.compose.material3.Icon(Icons.Filled.School, contentDescription = null)
+        }
     )
 
     AppScaffold(
@@ -56,15 +60,14 @@ fun HomeScreen(navController: NavController) {
         },
         onLogoutClick = {
             navController.navigate(Routes.Login) {
-                popUpTo(0) // limpia TODO el backstack
+                popUpTo(0)
                 launchSingleTop = true
             }
         },
-
         navItems = navItems
-    ) {innerPadding ->
+    ) { innerPadding ->
         InicioNoticias(
-            modifier = Modifier.padding(paddingValues = innerPadding)
+            modifier = Modifier.padding(innerPadding)
         )
     }
 }

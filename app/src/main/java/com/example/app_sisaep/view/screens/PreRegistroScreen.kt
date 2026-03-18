@@ -19,14 +19,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.EscuelaDto
 import com.example.app_sisaep.model.dto.SolicitudInsertDto
-import com.example.app_sisaep.model.supabase.SupabaseConnection // ✅ NUEVO
+import com.example.app_sisaep.model.supabase.SupabaseConnection
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.viewModel.consultaas
 import com.example.app_sisaep.viewModel.estatus
@@ -34,12 +36,23 @@ import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.launch
 
 private val Guinda = Color(0xFF7A003C)
-private val Bg = Color(0xFFF6F6F8)
 
-private enum class Step(val title: String, val subtitle: String) {
-    Personal("Datos personales", "Asegúrate de escribirlos tal como aparecen en tus documentos."),
-    Contacto("Contacto", "Usaremos este correo para notificaciones del proceso."),
-    Escuela("Institución", "Selecciona la escuela a la que perteneces.")
+private enum class Step(
+    val titleRes: Int,
+    val subtitleRes: Int
+) {
+    Personal(
+        R.string.step_personal_title,
+        R.string.step_personal_subtitle
+    ),
+    Contacto(
+        R.string.step_contact_title,
+        R.string.step_contact_subtitle
+    ),
+    Escuela(
+        R.string.step_school_title,
+        R.string.step_school_subtitle
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,16 +72,12 @@ fun PreRegistroScreen(navController: NavController) {
     var nombre by remember { mutableStateOf("") }
     var apellidoPaterno by remember { mutableStateOf("") }
     var apellidoMaterno by remember { mutableStateOf("") }
-
-    // ✅ CAMBIO: antes numeroBoleta
     var boletaOEmpleado by remember { mutableStateOf("") }
-
     var correo by remember { mutableStateOf("") }
     var curp by remember { mutableStateOf("") }
 
     var currentStep by remember { mutableStateOf(Step.Personal) }
 
-    // Errores por campo (UX clara)
     var errNombre by remember { mutableStateOf<String?>(null) }
     var errApPat by remember { mutableStateOf<String?>(null) }
     var errApMat by remember { mutableStateOf<String?>(null) }
@@ -95,20 +104,24 @@ fun PreRegistroScreen(navController: NavController) {
         when (step) {
             Step.Personal -> {
                 if (nombre.isBlank()) {
-                    errNombre = "Requerido"; ok = false
+                    errNombre = context.getString(R.string.required)
+                    ok = false
                 }
                 if (apellidoPaterno.isBlank()) {
-                    errApPat = "Requerido"; ok = false
+                    errApPat = context.getString(R.string.required)
+                    ok = false
                 }
                 if (apellidoMaterno.isBlank()) {
-                    errApMat = "Requerido"; ok = false
+                    errApMat = context.getString(R.string.required)
+                    ok = false
                 }
 
                 val be = boletaOEmpleado.trim()
                 if (be.isBlank()) {
-                    errBoleta = "Requerido"; ok = false
+                    errBoleta = context.getString(R.string.required)
+                    ok = false
                 } else if (!be.all { it.isDigit() } || be.length !in 8..10) {
-                    errBoleta = "Debe tener 8, 9 o 10 dígitos"
+                    errBoleta = context.getString(R.string.employee_or_student_number_error)
                     ok = false
                 }
             }
@@ -116,19 +129,20 @@ fun PreRegistroScreen(navController: NavController) {
             Step.Contacto -> {
                 val email = correo.trim()
                 if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    errCorreo = "Correo inválido"
+                    errCorreo = context.getString(R.string.invalid_email)
                     ok = false
                 }
+
                 val c = curp.trim()
                 if (c.length != 18) {
-                    errCurp = "Debe tener 18 caracteres"
+                    errCurp = context.getString(R.string.curp_length_error)
                     ok = false
                 }
             }
 
             Step.Escuela -> {
                 if (escuelaSeleccionada == null) {
-                    errEscuela = "Selecciona una escuela"
+                    errEscuela = context.getString(R.string.select_school_error)
                     ok = false
                 }
             }
@@ -152,7 +166,15 @@ fun PreRegistroScreen(navController: NavController) {
         focusedBorderColor = Guinda,
         focusedLabelColor = Guinda,
         cursorColor = Guinda,
-        unfocusedBorderColor = Color(0xFFD0D0D0)
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        focusedLeadingIconColor = Guinda,
+        unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+        disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
     LaunchedEffect(Unit) {
@@ -161,17 +183,33 @@ fun PreRegistroScreen(navController: NavController) {
         try {
             escuelas = consultaas.getEscuelas()
         } catch (e: Exception) {
-            errorMessage = e.message ?: "No se pudieron cargar las escuelas"
+            errorMessage = e.message ?: context.getString(R.string.schools_load_error)
         } finally {
             loading = false
         }
     }
 
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val onBackgroundColor = MaterialTheme.colorScheme.onBackground
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+
     Scaffold(
-        containerColor = Bg,
+        containerColor = backgroundColor,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Pre-registro", fontWeight = FontWeight.SemiBold) }
+                title = {
+                    Text(
+                        text = stringResource(R.string.pre_register_title),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = backgroundColor,
+                    titleContentColor = onBackgroundColor
+                )
             )
         }
     ) { padding ->
@@ -182,18 +220,19 @@ fun PreRegistroScreen(navController: NavController) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 18.dp, vertical = 14.dp)
         ) {
-
             Text(
-                text = "Solicitud de acceso",
+                text = stringResource(R.string.access_request_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF1E1E1E)
+                color = onBackgroundColor
             )
+
             Spacer(Modifier.height(6.dp))
+
             Text(
-                text = "Completa tus datos para enviar tu solicitud. La validación se realizará por la plataforma.",
+                text = stringResource(R.string.access_request_description),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF5A5A5A)
+                color = secondaryTextColor
             )
 
             Spacer(Modifier.height(14.dp))
@@ -208,7 +247,8 @@ fun PreRegistroScreen(navController: NavController) {
             if (loading) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
-                    color = Guinda
+                    color = Guinda,
+                    trackColor = trackColor
                 )
                 Spacer(Modifier.height(12.dp))
             }
@@ -220,7 +260,7 @@ fun PreRegistroScreen(navController: NavController) {
                 ) {
                     Column(Modifier.padding(12.dp)) {
                         Text(
-                            "No se pudo continuar",
+                            text = stringResource(R.string.continue_error_title),
                             fontWeight = FontWeight.SemiBold,
                             color = Guinda
                         )
@@ -233,22 +273,25 @@ fun PreRegistroScreen(navController: NavController) {
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = surfaceColor),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(currentStep.titleRes),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = onSurfaceColor
+                    )
+
+                    Spacer(Modifier.height(6.dp))
 
                     Text(
-                        text = currentStep.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = currentStep.subtitle,
+                        text = stringResource(currentStep.subtitleRes),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF6A6A6A)
+                        color = secondaryTextColor
                     )
+
                     Spacer(Modifier.height(14.dp))
 
                     AnimatedContent(
@@ -263,8 +306,11 @@ fun PreRegistroScreen(navController: NavController) {
                                 Column {
                                     OutlinedTextField(
                                         value = nombre,
-                                        onValueChange = { nombre = it.uppercase(); errNombre = null },
-                                        label = { Text("Nombre") },
+                                        onValueChange = {
+                                            nombre = it.uppercase()
+                                            errNombre = null
+                                        },
+                                        label = { Text(stringResource(R.string.name_label)) },
                                         modifier = Modifier.fillMaxWidth(),
                                         singleLine = true,
                                         isError = errNombre != null,
@@ -273,6 +319,7 @@ fun PreRegistroScreen(navController: NavController) {
                                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                                         keyboardActions = KeyboardActions(onNext = { })
                                     )
+
                                     Spacer(Modifier.height(10.dp))
 
                                     Row(
@@ -281,8 +328,11 @@ fun PreRegistroScreen(navController: NavController) {
                                     ) {
                                         OutlinedTextField(
                                             value = apellidoPaterno,
-                                            onValueChange = { apellidoPaterno = it.uppercase(); errApPat = null },
-                                            label = { Text("Apellido paterno") },
+                                            onValueChange = {
+                                                apellidoPaterno = it.uppercase()
+                                                errApPat = null
+                                            },
+                                            label = { Text(stringResource(R.string.last_name_label)) },
                                             modifier = Modifier.weight(1f),
                                             singleLine = true,
                                             isError = errApPat != null,
@@ -290,10 +340,14 @@ fun PreRegistroScreen(navController: NavController) {
                                             colors = fieldColors,
                                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                                         )
+
                                         OutlinedTextField(
                                             value = apellidoMaterno,
-                                            onValueChange = { apellidoMaterno = it.uppercase(); errApMat = null },
-                                            label = { Text("Apellido materno") },
+                                            onValueChange = {
+                                                apellidoMaterno = it.uppercase()
+                                                errApMat = null
+                                            },
+                                            label = { Text(stringResource(R.string.middle_name_label)) },
                                             modifier = Modifier.weight(1f),
                                             singleLine = true,
                                             isError = errApMat != null,
@@ -311,7 +365,9 @@ fun PreRegistroScreen(navController: NavController) {
                                             boletaOEmpleado = input.filter { it.isDigit() }.take(10)
                                             errBoleta = null
                                         },
-                                        label = { Text("Boleta o número de empleado") },
+                                        label = {
+                                            Text(stringResource(R.string.student_or_employee_number_label))
+                                        },
                                         modifier = Modifier.fillMaxWidth(),
                                         singleLine = true,
                                         isError = errBoleta != null,
@@ -332,8 +388,11 @@ fun PreRegistroScreen(navController: NavController) {
                                 Column {
                                     OutlinedTextField(
                                         value = correo,
-                                        onValueChange = { correo = it; errCorreo = null },
-                                        label = { Text("Correo") },
+                                        onValueChange = {
+                                            correo = it
+                                            errCorreo = null
+                                        },
+                                        label = { Text(stringResource(R.string.email_label)) },
                                         modifier = Modifier.fillMaxWidth(),
                                         singleLine = true,
                                         isError = errCorreo != null,
@@ -344,12 +403,16 @@ fun PreRegistroScreen(navController: NavController) {
                                             imeAction = ImeAction.Next
                                         )
                                     )
+
                                     Spacer(Modifier.height(10.dp))
 
                                     OutlinedTextField(
                                         value = curp,
-                                        onValueChange = { curp = it.uppercase(); errCurp = null },
-                                        label = { Text("CURP (18 caracteres)") },
+                                        onValueChange = {
+                                            curp = it.uppercase()
+                                            errCurp = null
+                                        },
+                                        label = { Text(stringResource(R.string.curp_label)) },
                                         modifier = Modifier.fillMaxWidth(),
                                         singleLine = true,
                                         isError = errCurp != null,
@@ -378,8 +441,10 @@ fun PreRegistroScreen(navController: NavController) {
                                             } ?: "",
                                             onValueChange = {},
                                             readOnly = true,
-                                            label = { Text("Escuela") },
-                                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                            label = { Text(stringResource(R.string.school_label)) },
+                                            trailingIcon = {
+                                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                            },
                                             modifier = Modifier
                                                 .menuAnchor()
                                                 .fillMaxWidth(),
@@ -390,13 +455,15 @@ fun PreRegistroScreen(navController: NavController) {
 
                                         ExposedDropdownMenu(
                                             expanded = expanded,
-                                            onDismissRequest = { expanded = false }
+                                            onDismissRequest = { expanded = false },
+                                            containerColor = surfaceColor
                                         ) {
                                             escuelas.forEach { escuela ->
                                                 DropdownMenuItem(
                                                     text = {
                                                         Text(
-                                                            "${escuela.nombre}${if (escuela.siglas.isNullOrBlank()) "" else " (${escuela.siglas})"}"
+                                                            text = "${escuela.nombre}${if (escuela.siglas.isNullOrBlank()) "" else " (${escuela.siglas})"}",
+                                                            color = onSurfaceColor
                                                         )
                                                     },
                                                     onClick = {
@@ -412,9 +479,9 @@ fun PreRegistroScreen(navController: NavController) {
                                     Spacer(Modifier.height(12.dp))
 
                                     Text(
-                                        text = "Al enviar tu solicitud, se iniciará el proceso de validación.",
+                                        text = stringResource(R.string.validation_process_message),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF6A6A6A)
+                                        color = secondaryTextColor
                                     )
                                 }
                             }
@@ -436,6 +503,7 @@ fun PreRegistroScreen(navController: NavController) {
                             val okPersonal = validateStep(Step.Personal)
                             val okContacto = validateStep(Step.Contacto)
                             val okEscuela = validateStep(Step.Escuela)
+
                             if (!(okPersonal && okContacto && okEscuela)) return@WizardFooter
 
                             sending = true
@@ -449,7 +517,7 @@ fun PreRegistroScreen(navController: NavController) {
                                     )
 
                                     if (yaExiste) {
-                                        errorMessage = "Ya existe una solicitud en proceso con estos datos."
+                                        errorMessage = context.getString(R.string.duplicate_request_error)
                                         return@launch
                                     }
 
@@ -465,23 +533,19 @@ fun PreRegistroScreen(navController: NavController) {
 
                                     val newId = consultaas.insertarSolicitud(payload)
 
-                                    // ✅ Guardamos solicitud pendiente (igual que antes)
                                     estatus.guardarSolicitudPendiente(context, newId)
 
-                                    // ✅ NUEVO: aseguramos que NO haya sesión activa (evita que Login te mande a Home)
                                     try {
                                         SupabaseConnection.client.auth.signOut()
                                     } catch (_: Exception) {
-                                        // si falla, no detenemos el flujo
                                     }
 
-                                    // ✅ NUEVO: navegamos a Login limpiando backstack del PreRegistro
                                     navController.navigate(Routes.Login) {
                                         popUpTo(Routes.PreRegistro) { inclusive = true }
                                         launchSingleTop = true
                                     }
                                 } catch (e: Exception) {
-                                    errorMessage = e.message ?: "No se pudo enviar la solicitud"
+                                    errorMessage = e.message ?: context.getString(R.string.submit_request_error)
                                 } finally {
                                     sending = false
                                 }
@@ -498,7 +562,7 @@ fun PreRegistroScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Volver al login",
+                    text = stringResource(R.string.back_to_login),
                     color = Guinda,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.clickable { navController.popBackStack() }
@@ -516,15 +580,21 @@ private fun Stepper(current: Step, modifier: Modifier = Modifier) {
     val idx = steps.indexOf(current) + 1
     val total = steps.size
 
+    val secondaryTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val inactiveChipColor = MaterialTheme.colorScheme.surfaceVariant
+    val inactiveChipTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Column(modifier) {
         LinearProgressIndicator(
             progress = { idx.toFloat() / total.toFloat() },
             color = Guinda,
-            trackColor = Color(0xFFE7E7EA),
+            trackColor = trackColor,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(6.dp)
         )
+
         Spacer(Modifier.height(10.dp))
 
         Row(
@@ -532,12 +602,11 @@ private fun Stepper(current: Step, modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             steps.forEachIndexed { i, s ->
-                val active = (s == current)
+                val active = s == current
 
-                // 👇 PEGA ESTO AQUÍ
-                val w = when (s.title) {
-                    "Contacto" -> 0.95f
-                    "Institución" -> 1.05f
+                val w = when (s) {
+                    Step.Contacto -> 0.95f
+                    Step.Escuela -> 1.05f
                     else -> 1f
                 }
 
@@ -546,36 +615,43 @@ private fun Stepper(current: Step, modifier: Modifier = Modifier) {
                     onClick = {},
                     enabled = false,
                     label = {
-                        val isDatos = s.title == "Datos personales"
+                        val isPersonal = s == Step.Personal
 
-                        val labelText = if (isDatos) "Datos\npersonales" else s.title
-                        val finalText = if (isDatos)
-                            "${i + 1}. $labelText"
-                        else
-                            "${i + 1}.\u00A0$labelText"
+                        val labelText = if (isPersonal) {
+                            stringResource(R.string.step_chip_personal_multiline)
+                        } else {
+                            stringResource(s.titleRes)
+                        }
+
+                        val finalText = stringResource(
+                            R.string.step_chip_format,
+                            i + 1,
+                            labelText
+                        )
 
                         Text(
                             text = finalText,
                             fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
-                            maxLines = if (isDatos) 2 else 1,
-                            softWrap = isDatos
+                            maxLines = if (isPersonal) 2 else 1,
+                            softWrap = isPersonal
                         )
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = if (active) Color(0xFFFFEFF6) else Color(0xFFF2F2F4),
-                        labelColor = if (active) Guinda else Color(0xFF444444),
-                        disabledContainerColor = if (active) Color(0xFFFFEFF6) else Color(0xFFF2F2F4),
-                        disabledLabelColor = if (active) Guinda else Color(0xFF444444)
+                        containerColor = if (active) Guinda.copy(alpha = 0.10f) else inactiveChipColor,
+                        labelColor = if (active) Guinda else inactiveChipTextColor,
+                        disabledContainerColor = if (active) Guinda.copy(alpha = 0.10f) else inactiveChipColor,
+                        disabledLabelColor = if (active) Guinda else inactiveChipTextColor
                     )
                 )
             }
         }
 
         Spacer(Modifier.height(8.dp))
+
         Text(
-            text = "Paso $idx de $total",
+            text = stringResource(R.string.step_counter, idx, total),
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF6A6A6A)
+            color = secondaryTextColor
         )
     }
 }
@@ -604,7 +680,7 @@ private fun WizardFooter(
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Guinda),
             border = BorderStroke(1.dp, Guinda.copy(alpha = 0.4f))
         ) {
-            Text("Atrás")
+            Text(stringResource(R.string.back_button))
         }
 
         if (!isLast) {
@@ -614,7 +690,11 @@ private fun WizardFooter(
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = Guinda)
             ) {
-                Text("Siguiente", color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = stringResource(R.string.next_button),
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         } else {
             Button(
@@ -630,9 +710,17 @@ private fun WizardFooter(
                         color = Color.White
                     )
                     Spacer(Modifier.width(10.dp))
-                    Text("Enviando...", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = stringResource(R.string.sending_button),
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 } else {
-                    Text("Enviar solicitud", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = stringResource(R.string.submit_request_button),
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }
