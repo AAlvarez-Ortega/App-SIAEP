@@ -173,4 +173,58 @@
     <string name="dark_mode">Modo oscuro</string>
     <string name="dark_mode_description">Activa un tema oscuro para toda la app</string>
 
+    <string name="understood_button">Entendido</string>
+
+    <string name="new_notice_title">Nuevo aviso</string>
+
+    <string name="title_label">Título</string>
+    <string name="message_label">Mensaje</string>
+
+    <string name="notice_type">Tipo de aviso</string>
+
+    <string name="expiration_checkbox">Elegir fecha de expiración</string>
+    <string name="date_label">Fecha</string>
+    <string name="time_label">Hora</string>
+
+    <string name="cancel_button">Cancelar</string>
+    <string name="publish_button">Publicar</string>
+
+    <string name="notice_published">Aviso publicado</string>
+
+    <string name="select_date">Seleccionar fecha</string>
+    <string name="select_time">Seleccionar hora</string>
+
+    <string name="tipo_informativo">Informativo</string>
+    <string name="tipo_urgente">Urgente</string>
+    <string name="tipo_evento">Evento</string>
+    <string name="tipo_mantenimiento">Mantenimiento</string>
+
+    <string name="create_notice_content_description">Crear aviso</string>
+    <string name="new_global_notice">Nuevo Aviso Global</string>
+
+    <string name="title_required">Título (Obligatorio)</string>
+    <string name="message_required">Mensaje (Obligatorio)</string>
+
+    <string name="category_label">Categoría:</string>
+
+    <string name="set_expiration">Establecer fecha de expiración</string>
+
+
+    <string name="change_date">Cambiar Fecha</string>
+    <string name="configure_time">Configurar Hora</string>
+
+    <string name="auto_delete_note">Nota: Se eliminará automáticamente en 24 horas.</string>
+
+    <string name="date_must_be_future">La fecha debe ser futura</string>
+
+    <string name="notice_success">Aviso publicado correctamente</string>
+    <string name="server_error">Error al conectar con el servidor</string>
+
+    <string name="urgent_notice_title">¡AVISO URGENTE!</string>
+    <string name="understood_uppercase">ENTENDIDO</string>
+
+    <string name="news_title">Noticias</string>
+    <string name="expires_label">Expira:</string>
+
+    <string name="ok_button">OK</string>
 </resources>

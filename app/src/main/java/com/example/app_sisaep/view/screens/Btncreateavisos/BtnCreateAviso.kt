@@ -12,6 +12,8 @@ import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
 
 @Composable
 fun BtnCreateAviso(onClick: () -> Unit) {
@@ -38,7 +40,10 @@ fun BtnCreateAviso(onClick: () -> Unit) {
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "Crear Aviso")
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = stringResource(R.string.create_notice_content_description)
+            )
         }
     }
 

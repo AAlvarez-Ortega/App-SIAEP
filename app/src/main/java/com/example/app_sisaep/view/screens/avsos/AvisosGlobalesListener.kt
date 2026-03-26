@@ -14,6 +14,8 @@ import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.decodeRecord
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
 
 @Composable
 fun AvisosGlobalesListener() {
@@ -98,7 +100,7 @@ fun AvisosGlobalesListener() {
 
                 ) {
 
-                    Text("Entendido")
+                    Text(stringResource(R.string.understood_button))
 
                 }
 

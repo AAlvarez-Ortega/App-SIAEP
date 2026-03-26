@@ -48,11 +48,13 @@ import com.example.app_sisaep.viewModel.consultaas.obtenerAvisosActivos
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
 
 @Composable
 fun NoticiasSection() {
     Text(
-        text = "Noticias",
+        text = stringResource(R.string.news_title),
         style = MaterialTheme.typography.titleLarge,
         modifier = Modifier.padding(bottom = 12.dp)
     )
@@ -188,7 +190,11 @@ fun IconoNoticiaCard(
                         )
                         aviso.fecha_expiracion?.let { fecha ->
                             Text(
-                                text = "Expira: ${formatFecha(fecha)}",
+                                text = "${stringResource(R.string.expires_label)} ${
+                                    formatFecha(
+                                        fecha
+                                    )
+                                }",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )

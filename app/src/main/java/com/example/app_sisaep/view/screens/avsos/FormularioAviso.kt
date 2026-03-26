@@ -46,6 +46,8 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import java.util.Calendar
 import kotlin.time.Duration.Companion.hours
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -69,10 +71,10 @@ fun FormularioAviso(
     val scope = rememberCoroutineScope()
 
     val tipos = listOf(
-        "informativo",
-        "urgente",
-        "evento",
-        "mantenimiento"
+        "informativo" to R.string.tipo_informativo,
+        "urgente" to R.string.tipo_urgente,
+        "evento" to R.string.tipo_evento,
+        "mantenimiento" to R.string.tipo_mantenimiento
     )
 
     Box(
@@ -101,7 +103,7 @@ fun FormularioAviso(
             ) {
 
                 Text(
-                    text = "Nuevo aviso",
+                    text = stringResource(R.string.new_notice_title),
                     style = MaterialTheme.typography.headlineSmall,
                     color = guindaIPN
                 )
@@ -111,7 +113,7 @@ fun FormularioAviso(
                 OutlinedTextField(
                     value = titulo,
                     onValueChange = { titulo = it },
-                    label = { Text("Título") },
+                    label = { Text(stringResource(R.string.title_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -119,14 +121,14 @@ fun FormularioAviso(
                 OutlinedTextField(
                     value = mensaje,
                     onValueChange = { mensaje = it },
-                    label = { Text("Mensaje") },
+                    label = { Text(stringResource(R.string.message_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp)
                 )
 
                 Text(
-                    text = "Tipo de aviso",
+                    text = stringResource(R.string.notice_type),
                     style = MaterialTheme.typography.titleMedium,
                     color = guindaIPN
                 )
@@ -135,15 +137,13 @@ fun FormularioAviso(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
 
-                    tipos.forEach {
+                    tipos.forEach { (value, labelRes) ->
 
                         FilterChip(
-                            selected = tipo == it,
-                            onClick = { tipo = it },
+                            selected = tipo == value,
+                            onClick = { tipo = value },
                             label = {
-                                Text(
-                                    it.replaceFirstChar { c -> c.uppercase() }
-                                )
+                                Text(stringResource(labelRes))
                             }
                         )
 
@@ -162,7 +162,7 @@ fun FormularioAviso(
                         onCheckedChange = { usarExpiracion = it }
                     )
 
-                    Text("Elegir fecha de expiración")
+                    Text(stringResource(R.string.expiration_checkbox))
 
                 }
 
@@ -180,7 +180,7 @@ fun FormularioAviso(
                         OutlinedTextField(
                             value = fechaExpiracion?.toString() ?: "",
                             onValueChange = {},
-                            label = { Text("Fecha") },
+                            label = { Text(stringResource(R.string.date_label)) },
                             readOnly = true,
                             modifier = Modifier.width(150.dp)
                         )
@@ -199,7 +199,7 @@ fun FormularioAviso(
                         OutlinedTextField(
                             value = horaExpiracion?.toString() ?: "",
                             onValueChange = {},
-                            label = { Text("Hora") },
+                            label = { Text(stringResource(R.string.time_label)) },
                             readOnly = true,
                             modifier = Modifier.width(150.dp)
                         )
@@ -210,6 +210,8 @@ fun FormularioAviso(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
+                val mensajeSnackbar = stringResource(R.string.notice_published)
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -219,8 +221,9 @@ fun FormularioAviso(
                         onClick = onCancelar,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Cancelar")
+                        Text(stringResource(R.string.cancel_button))
                     }
+
 
                     Button(
                         onClick = {
@@ -248,7 +251,7 @@ fun FormularioAviso(
                             )
 
                             scope.launch {
-                                snackbarHostState.showSnackbar("Aviso publicado")
+                                snackbarHostState.showSnackbar(mensajeSnackbar)
                             }
 
                         },
@@ -257,7 +260,7 @@ fun FormularioAviso(
                             containerColor = guindaIPN
                         )
                     ) {
-                        Text("Publicar")
+                        Text(stringResource(R.string.publish_button))
                     }
 
                 }
@@ -302,7 +305,7 @@ fun DatePickerDialogExample(
 
     }) {
 
-        Text("Seleccionar fecha")
+        Text(stringResource(R.string.select_date))
 
     }
 
@@ -337,7 +340,7 @@ fun TimePickerDialogExample(
 
     }) {
 
-        Text("Seleccionar hora")
+        Text(stringResource(R.string.select_time))
 
     }
 

@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.model.dto.AvisoGlobal
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
 
 @Composable
 fun PantallaCompletaAviso(aviso: AvisoGlobal, onConfirm: () -> Unit) {
@@ -42,7 +44,7 @@ fun PantallaCompletaAviso(aviso: AvisoGlobal, onConfirm: () -> Unit) {
                 tint = androidx.compose.ui.graphics.Color.White
             )
             Text(
-                text = "¡AVISO URGENTE!",
+                text = stringResource(R.string.urgent_notice_title),
                 style = MaterialTheme.typography.displaySmall,
                 color = androidx.compose.ui.graphics.Color.White,
                 fontWeight = FontWeight.Black
@@ -66,7 +68,10 @@ fun PantallaCompletaAviso(aviso: AvisoGlobal, onConfirm: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.White, contentColor = androidx.compose.ui.graphics.Color.Black),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
-                Text("ENTENDIDO", fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.understood_uppercase),
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

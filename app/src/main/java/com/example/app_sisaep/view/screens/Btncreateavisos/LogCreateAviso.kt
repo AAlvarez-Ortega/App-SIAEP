@@ -18,6 +18,8 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +55,7 @@ fun LogCreateAviso(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuevo Aviso Global") },
+        title = { Text(stringResource(R.string.new_global_notice)) },
         text = {
             Column(
                 modifier = Modifier
@@ -64,7 +66,7 @@ fun LogCreateAviso(
                 OutlinedTextField(
                     value = titulo,
                     onValueChange = { if (it.length <= 50) titulo = it },
-                    label = { Text("Título (Obligatorio)") },
+                    label = { Text(stringResource(R.string.title_required)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -72,19 +74,33 @@ fun LogCreateAviso(
                 OutlinedTextField(
                     value = mensaje,
                     onValueChange = { mensaje = it },
-                    label = { Text("Mensaje (Obligatorio)") },
+                    label = { Text(stringResource(R.string.message_required)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
 
-                Text("Categoría:", style = MaterialTheme.typography.labelMedium)
-                val tipos = listOf("Informativo", "Urgente", "Evento")
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    tipos.forEach { tipo ->
+                Text(stringResource(R.string.category_label), style = MaterialTheme.typography.labelMedium)
+                val tipos = listOf(
+                    "Informativo" to R.string.tipo_informativo,
+                    "Urgente" to R.string.tipo_urgente,
+                    "Evento" to R.string.tipo_evento
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    tipos.forEach { (value, labelRes) ->
                         FilterChip(
-                            selected = tipoAviso == tipo,
-                            onClick = { tipoAviso = tipo },
-                            label = { Text(tipo) }
+                            selected = tipoAviso == value,
+                            onClick = { tipoAviso = value },
+                            label = {
+                                Text(
+                                    text = stringResource(labelRes),
+                                    maxLines = 1
+                                )
+                            }
                         )
                     }
                 }
@@ -93,7 +109,7 @@ fun LogCreateAviso(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = tieneExpiracion, onCheckedChange = { tieneExpiracion = it })
-                    Text("Establecer fecha de expiración")
+                    Text(stringResource(R.string.set_expiration))
                 }
 
                 AnimatedVisibility(visible = tieneExpiracion) {
@@ -103,7 +119,12 @@ fun LogCreateAviso(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
                         ) {
-                            Text(if (datePickerState.selectedDateMillis == null) "Seleccionar Fecha" else "Cambiar Fecha")
+                            Text(
+                                if (datePickerState.selectedDateMillis == null)
+                                    stringResource(R.string.select_date)
+                                else
+                                    stringResource(R.string.change_date)
+                            )
                         }
 
                         Button(
@@ -111,14 +132,18 @@ fun LogCreateAviso(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
                         ) {
-                            Text("Configurar Hora: ${"%02d".format(timePickerState.hour)}:${"%02d".format(timePickerState.minute)}")
+                            Text(
+                                "${stringResource(R.string.configure_time)}: ${
+                                    "%02d".format(timePickerState.hour)
+                                }:${"%02d".format(timePickerState.minute)}"
+                            )
                         }
                     }
                 }
 
                 if (!tieneExpiracion) {
                     Text(
-                        "Nota: Se eliminará automáticamente en 24 horas.",
+                        stringResource(R.string.auto_delete_note),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -139,7 +164,11 @@ fun LogCreateAviso(
 
                         // Validación de seguridad: No fechas pasadas
                         if (fechaSeleccionada.isBefore(ahora)) {
-                            Toast.makeText(context, "La fecha debe ser futura", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.date_must_be_future),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@Button
                         }
                         fechaFinalStr = fechaSeleccionada.format(formatter)
@@ -151,20 +180,28 @@ fun LogCreateAviso(
                     scope.launch {
                         val exito = crearAviso(titulo, mensaje, tipoAviso, fechaFinalStr)
                         if (exito) {
-                            Toast.makeText(context, "Aviso publicado correctamente", Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.notice_success),
+                                Toast.LENGTH_LONG
+                            ).show()
                             onSuccess()
                             onDismiss()
                         } else {
-                            Toast.makeText(context, "Error al conectar con el servidor", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.server_error),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 },
                 enabled = titulo.isNotBlank() && mensaje.isNotBlank()
             ) {
-                Text("Publicar")
+                Text(stringResource(R.string.publish_button))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_button)) } }
     )
 
     // Modales de selección
@@ -172,7 +209,7 @@ fun LogCreateAviso(
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("OK") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.ok_button)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -183,7 +220,7 @@ fun LogCreateAviso(
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text("OK") }
+                TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.ok_button)) }
             },
             text = { TimePicker(state = timePickerState) }
         )

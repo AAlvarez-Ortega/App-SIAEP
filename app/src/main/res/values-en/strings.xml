@@ -172,4 +172,58 @@
     <string name="dark_mode">Dark mode</string>
     <string name="dark_mode_description">Enable a dark theme for the whole app</string>
 
+    <string name="understood_button">Got it</string>
+
+    <string name="new_notice_title">New notice</string>
+
+    <string name="title_label">Title</string>
+    <string name="message_label">Message</string>
+
+    <string name="notice_type">Notice type</string>
+
+    <string name="expiration_checkbox">Choose expiration date</string>
+    <string name="date_label">Date</string>
+    <string name="time_label">Time</string>
+
+    <string name="cancel_button">Cancel</string>
+    <string name="publish_button">Publish</string>
+
+    <string name="notice_published">Notice published</string>
+
+    <string name="select_date">Select date</string>
+    <string name="select_time">Select time</string>
+
+    <string name="tipo_informativo">Info</string>
+    <string name="tipo_urgente">Urgent</string>
+    <string name="tipo_evento">Event</string>
+    <string name="tipo_mantenimiento">Maintenance</string>
+
+    <string name="create_notice_content_description">Create notice</string>
+    <string name="new_global_notice">New Global Notice</string>
+
+    <string name="title_required">Title (Required)</string>
+    <string name="message_required">Message (Required)</string>
+
+    <string name="category_label">Category:</string>
+
+    <string name="set_expiration">Set expiration date</string>
+
+
+    <string name="change_date">Change Date</string>
+    <string name="configure_time">Set Time</string>
+
+    <string name="auto_delete_note">Note: It will be automatically deleted in 24 hours.</string>
+
+    <string name="date_must_be_future">The date must be in the future</string>
+
+    <string name="notice_success">Notice published successfully</string>
+    <string name="server_error">Error connecting to server</string>
+
+    <string name="urgent_notice_title">URGENT NOTICE!</string>
+    <string name="understood_uppercase">GOT IT</string>
+
+    <string name="ok_button">OK</string>
+
+    <string name="news_title">News</string>
+    <string name="expires_label">Expires:</string>
 </resources>
