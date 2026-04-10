@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "com.example.app_sisaep"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.app_sisaep"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -46,16 +46,16 @@ android {
 dependencies {
 
     // Navigation
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.navigation:navigation-compose:2.9.7")
 
     // ✅ Compose BOM (alinea TODAS las versiones)
-    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.03.01"))
 
     // Compose
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
 
     // Opcionales (si los usas)
     implementation("androidx.compose.material:material-icons-extended") // o deja tu libs.androidx... si ya funciona
@@ -73,12 +73,11 @@ dependencies {
 
     // Supabase
     implementation(libs.supabase.kt)
-    implementation(libs.gotrue.kt)
-    implementation(libs.postgrest.kt)
-    implementation(libs.storage.kt)
-    implementation(libs.realtime.kt)
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("io.github.jan-tennert.supabase:realtime-kt:2.5.4")
+    implementation(libs.androidx.datastore.preferences)
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:2.5.0")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:2.5.0")
+    implementation("io.github.jan-tennert.supabase:realtime-kt:2.5.0")
+    implementation("io.github.jan-tennert.supabase:storage-kt:2.5.0")
 
     // Ktor (solo 1 engine)
     implementation(libs.ktor.client.okhttp)

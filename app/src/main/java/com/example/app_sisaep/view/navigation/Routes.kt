@@ -19,4 +19,8 @@ object Routes {
     // Configuración
     const val Config = "config"
 
+    //chat
+    const val IndividualChat = "chat/{userId}/{userName}"
+
+
 }

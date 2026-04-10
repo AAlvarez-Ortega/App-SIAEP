@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.app_sisaep.view.screens.*
+import com.example.app_sisaep.view.screens.clases.sectionChat.IndividualChatScreen
 
 @Composable
 fun AppNavHost(
@@ -59,6 +60,21 @@ fun AppNavHost(
                 navController = navController,
                 darkMode = darkMode,
                 onDarkModeChange = onDarkModeChange
+            )
+        }
+
+
+        // navegacion del chat
+        composable(
+            route = "chat/{userId}/{userName}"
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            val userName = backStackEntry.arguments?.getString("userName") ?: "Usuario"
+
+            IndividualChatScreen(
+                navController = navController,
+                receiverId = userId,
+                receiverName = userName
             )
         }
 

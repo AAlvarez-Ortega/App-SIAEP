@@ -6,7 +6,6 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +15,9 @@ import com.example.app_sisaep.R
 import com.example.app_sisaep.view.navigation.Routes
 
 import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.view.screens.clases.sectionChat.SectionChat
+import com.example.app_sisaep.view.screens.clases.SectionClases
+import com.example.app_sisaep.view.screens.clases.SectionGrupos
 
 
 @Composable
@@ -66,7 +68,10 @@ fun ClasesScreen(navController: NavController) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text(stringResource(R.string.classes))
+                        // Dentro de ClasesScreen.kt
+                        SectionClases()
+                        SectionGrupos()
+                        SectionChat(navController = navController)
                     }
                 }
 }
