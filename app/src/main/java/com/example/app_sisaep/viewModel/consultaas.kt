@@ -89,7 +89,10 @@ object consultaas {
 
     suspend fun obtenerMisDatos(): UsuarioDto? {
         return try {
+            // 1. Obtenemos el ID del usuario autenticado
             val userId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id ?: return null
+
+            // 2. Consultamos la tabla "usuarios" usando solo el ID como filtro
             SupabaseConnectionApp.client
                 .from("usuarios")
                 .select {
@@ -97,11 +100,11 @@ object consultaas {
                 }
                 .decodeSingleOrNull<UsuarioDto>()
         } catch (e: Exception) {
-            e.printStackTrace()
+            // Es mejor imprimir el error real para debuguear si algo falla en la tabla
+            println("Error obteniendo datos de Supabase: ${e.message}")
             null
         }
     }
-
 
     suspend fun obtenerContactosPorEscuela(escuelaCct: String): List<UsuarioDto> {
         return try {

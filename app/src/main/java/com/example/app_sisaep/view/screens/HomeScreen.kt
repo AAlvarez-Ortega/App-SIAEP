@@ -18,11 +18,12 @@ import com.example.app_sisaep.R
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.view.screens.Btncreateavisos.BtnCreateAviso
 import com.example.app_sisaep.view.screens.noticias.InicioNoticias
+import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
 
 
 @Composable
 fun HomeScreen(navController: NavController) {
-
+    var nombreReal by remember { mutableStateOf("") }
     var selectedIndex by remember { mutableIntStateOf(0) }
     var showCreateDialog by remember { mutableStateOf(false) }
 
@@ -33,7 +34,15 @@ fun HomeScreen(navController: NavController) {
         BottomNavItem(stringResource(R.string.classes)) { androidx.compose.material3.Icon(Icons.Filled.School, null) },
     )
 
+    LaunchedEffect(Unit) {
+        val usuario = obtenerMisDatos()
+        if (usuario != null) {
+            nombreReal = usuario.nombre
+        }
+    }
+
     AppScaffold(
+        nombreUsuario = nombreReal,
         selectedIndex = selectedIndex,
         onItemSelected = { index ->
             selectedIndex = index
@@ -46,7 +55,6 @@ fun HomeScreen(navController: NavController) {
         },
         onGenerateQrClick = { navController.navigate(Routes.GenerarQR) },
         onReadQrClick = { navController.navigate(Routes.ScanQR) },
-        topBarLogoRes = R.drawable.ipn,
         onConfigClick = { navController.navigate("config") },
         onLogoutClick = {
             navController.navigate(Routes.Login) {

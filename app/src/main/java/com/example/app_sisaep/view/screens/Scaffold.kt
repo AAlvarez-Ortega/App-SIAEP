@@ -5,7 +5,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,8 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.R
@@ -45,11 +44,10 @@ fun AppScaffold(
     onItemSelected: (Int) -> Unit,
     onGenerateQrClick: () -> Unit,
     onReadQrClick: () -> Unit,
-    nombreUsuario: String = "Sisaap",
+    nombreUsuario: String = "", // Valor por defecto si no hay datos aún
     versionApp: String = "1.0.0",
     onConfigClick: () -> Unit = {},
     onLogoutClick: () -> Unit,
-    topBarLogoRes: Int? = null,
     navItems: List<BottomNavItem>,
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
@@ -162,12 +160,10 @@ fun AppScaffold(
                         }
                     },
                     actions = {
-                        Image(
-                            painter = painterResource(id = R.drawable.logo_ipn_blanco),
-                            contentDescription = stringResource(R.string.ipn_logo),
-                            modifier = Modifier
-                                .size(34.dp)
-                                .padding(end = 10.dp)
+                        // El nuevo Avatar circular
+                        UserAvatar(
+                            nombre = nombreUsuario,
+                            modifier = Modifier.padding(end = 12.dp)
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -352,3 +348,24 @@ private fun navColors() = NavigationBarItemDefaults.colors(
     unselectedTextColor = Color.White.copy(alpha = 0.75f),
     indicatorColor = Color.White.copy(alpha = 0.15f)
 )
+
+@Composable
+fun UserAvatar(nombre: String, modifier: Modifier = Modifier) {
+    // Si el nombre está vacío o es nulo, usamos un signo de interrogación o similar
+    val inicial = if (nombre.isNotEmpty()) nombre.take(1).uppercase() else "?"
+
+    Box(
+        modifier = modifier
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(Color.White),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = inicial,
+            style = MaterialTheme.typography.titleMedium,
+            color = Color(0xFF7A003C), // Guinda IPN
+            fontWeight = FontWeight.Bold
+        )
+    }
+}

@@ -44,11 +44,13 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
 
 private enum class AgendaBody { EVENTOS, HORARIO, NUEVO_EVENTO }
 
 @Composable
 fun AgendaScreen(navController: NavController) {
+    var nombreReal by remember { mutableStateOf("") }
 
     val navItems = listOf(
         BottomNavItem(stringResource(R.string.home)) { Icon(Icons.Filled.Home, null) },
@@ -64,8 +66,15 @@ fun AgendaScreen(navController: NavController) {
     // Estado del contenido inferior (3 vistas)
     val bodyState = rememberSaveable { mutableStateOf(AgendaBody.EVENTOS.name) }
     val currentBody = AgendaBody.valueOf(bodyState.value)
+    LaunchedEffect(Unit) {
+        val usuario = obtenerMisDatos()
+        if (usuario != null) {
+            nombreReal = usuario.nombre
+        }
+    }
 
     AppScaffold(
+        nombreUsuario = nombreReal,
         selectedIndex = 2,
         onItemSelected = { index ->
             when (index) {

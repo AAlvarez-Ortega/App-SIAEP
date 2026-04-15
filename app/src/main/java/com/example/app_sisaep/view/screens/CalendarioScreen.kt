@@ -29,10 +29,12 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.max
 
 import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun CalendarioScreen(navController: NavController) {
+    var nombreReal by remember { mutableStateOf("") }
 
     val navItems = listOf(
         BottomNavItem(stringResource(R.string.home)) { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
@@ -40,8 +42,15 @@ fun CalendarioScreen(navController: NavController) {
         BottomNavItem(stringResource(R.string.agenda)) { androidx.compose.material3.Icon(Icons.Filled.Schedule, null) },
         BottomNavItem(stringResource(R.string.classes)) { androidx.compose.material3.Icon(Icons.Filled.School, null) },
     )
+    LaunchedEffect(Unit) {
+        val usuario = obtenerMisDatos()
+        if (usuario != null) {
+            nombreReal = usuario.nombre
+        }
+    }
 
     AppScaffold(
+        nombreUsuario = nombreReal,
         selectedIndex = 1,
         onItemSelected = { index ->
             when (index) {

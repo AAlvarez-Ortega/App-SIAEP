@@ -21,6 +21,7 @@ import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.viewModel.AuthApp
 import com.example.app_sisaep.viewModel.QrGenerate
+import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -28,8 +29,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 @Composable
 fun GenerarQrScreen(navController: NavController) {
-
-    // BottomNav (igual que las demás pantallas)
+    var nombreReal by remember { mutableStateOf("") }
     val navItems = listOf(
         BottomNavItem("Inicio") { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
         BottomNavItem("Calendario") { androidx.compose.material3.Icon(Icons.Filled.CalendarMonth, null) },
@@ -43,6 +43,13 @@ fun GenerarQrScreen(navController: NavController) {
 
     val session = remember { runCatching { AuthApp.requireSession() }.getOrNull() }
     val userId = session?.user?.id // coincide con usuarios.id
+
+    LaunchedEffect(Unit) {
+        val usuario = obtenerMisDatos()
+        if (usuario != null) {
+            nombreReal = usuario.nombre
+        }
+    }
 
     LaunchedEffect(userId) {
 
@@ -93,7 +100,8 @@ fun GenerarQrScreen(navController: NavController) {
     }
 
     AppScaffold(
-        selectedIndex = 0, // ✅ aquí marcamos "Inicio" (si prefieres otro, lo cambiamos)
+        nombreUsuario = nombreReal,
+        selectedIndex = 0,
         onItemSelected = { index ->
             when (index) {
                 0 -> navController.navigate(Routes.Home)
@@ -108,9 +116,9 @@ fun GenerarQrScreen(navController: NavController) {
         onReadQrClick = {
             navController.navigate(Routes.ScanQR)
         },
-        nombreUsuario = "Usuario", // luego lo jalamos real
 
-        topBarLogoRes = R.drawable.ipn,
+
+
         onConfigClick = {
             navController.navigate(Routes.Config)
         },

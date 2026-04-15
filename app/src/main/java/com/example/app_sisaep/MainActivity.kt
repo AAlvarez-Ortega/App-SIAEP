@@ -18,6 +18,13 @@ import com.example.app_sisaep.view.screens.Btncreateavisos.PantallaCompletaAviso
 import com.example.app_sisaep.viewModel.escucharAvisosUrgentes
 import com.example.app_sisaep.viewModel.obtenerUltimoAvisoUrgente
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
+
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,6 +88,22 @@ class MainActivity : AppCompatActivity() {
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+class MainViewModel : ViewModel() {
+    var nombreUsuario by mutableStateOf("Cargando...")
+        private set
+
+    fun cargarDatosUsuario() {
+        viewModelScope.launch {
+            val datos = obtenerMisDatos() // Tu función de Supabase
+            if (datos != null) {
+                nombreUsuario = datos.nombre
+            } else {
+                nombreUsuario = "Invitado"
             }
         }
     }

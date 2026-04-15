@@ -18,11 +18,13 @@ import androidx.compose.ui.res.stringResource
 import com.example.app_sisaep.view.screens.clases.sectionChat.SectionChat
 import com.example.app_sisaep.view.screens.clases.SectionClases
 import com.example.app_sisaep.view.screens.clases.SectionGrupos
+import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
 
 
 @Composable
 fun ClasesScreen(navController: NavController) {
-                var selectedIndex by remember { mutableIntStateOf(0) }
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    var nombreReal by remember { mutableStateOf("") }
 
     val navItems = listOf(
         BottomNavItem(stringResource(R.string.home)) { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
@@ -30,8 +32,15 @@ fun ClasesScreen(navController: NavController) {
         BottomNavItem(stringResource(R.string.agenda)) { androidx.compose.material3.Icon(Icons.Filled.Schedule, null) },
         BottomNavItem(stringResource(R.string.classes)) { androidx.compose.material3.Icon(Icons.Filled.School, null) },
     )
+    LaunchedEffect(Unit) {
+        val usuario = obtenerMisDatos()
+        if (usuario != null) {
+            nombreReal = usuario.nombre
+        }
+    }
 
                 AppScaffold(
+                    nombreUsuario = nombreReal,
                     selectedIndex = 3,
                     onItemSelected = { index ->
                         selectedIndex = index
