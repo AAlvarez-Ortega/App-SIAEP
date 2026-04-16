@@ -1,6 +1,7 @@
 package com.example.app_sisaep.view.screens
 
 import android.app.Activity
+import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,13 +44,17 @@ import com.example.app_sisaep.R
 
 private val Guinda = Color(0xFF7A003C)
 
+private const val PREFS_NAME = "settings"
+private const val KEY_DARK_MODE = "dark_mode"
+
 @Composable
 fun ConfigScreen(
     navController: NavController,
     darkMode: Boolean,
     onDarkModeChange: (Boolean) -> Unit
 ) {
-    val activity = LocalContext.current as? Activity
+    val context = LocalContext.current
+    val activity = context as? Activity
     val currentLanguage = AppCompatDelegate.getApplicationLocales()[0]?.language ?: "es"
     var selectedLanguage by remember(currentLanguage) { mutableStateOf(currentLanguage) }
 
@@ -175,7 +180,10 @@ fun ConfigScreen(
                 inactiveBoxColor = inactiveBoxColor,
                 subtitleColor = subtitleColor,
                 textColor = onSurfaceColor,
-                onCheckedChange = onDarkModeChange
+                onCheckedChange = { isChecked ->
+                    saveDarkModePreference(context, isChecked)
+                    onDarkModeChange(isChecked)
+                }
             )
         }
     }
@@ -312,4 +320,14 @@ private fun DarkModeOption(
 fun setAppLanguage(languageCode: String) {
     val appLocale = LocaleListCompat.forLanguageTags(languageCode)
     AppCompatDelegate.setApplicationLocales(appLocale)
+}
+
+fun saveDarkModePreference(context: Context, isDarkMode: Boolean) {
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    prefs.edit().putBoolean(KEY_DARK_MODE, isDarkMode).apply()
+}
+
+fun getDarkModePreference(context: Context): Boolean {
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return prefs.getBoolean(KEY_DARK_MODE, false)
 }

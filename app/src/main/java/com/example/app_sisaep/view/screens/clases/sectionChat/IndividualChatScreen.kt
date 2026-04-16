@@ -12,8 +12,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.MensajeDto
 import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import com.example.app_sisaep.viewModel.consultaas
@@ -33,19 +35,15 @@ fun IndividualChatScreen(navController: NavController, receiverId: String, recei
     var listaMensajes by remember { mutableStateOf<List<MensajeDto>>(emptyList()) }
     var nuevoMensajeTexto by remember { mutableStateOf("") }
 
-    // Paso 1: Obtener ID de conversación
-    // En IndividualChatScreen.kt
     LaunchedEffect(receiverId) {
         val miId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id
         if (miId != null) {
-            // Forzamos la obtención o creación
             val id = consultaas.obtenerOCrearConversacion(miId, receiverId)
             conversacionId = id
 
             if (id != null) {
                 listaMensajes = consultaas.obtenerMensajes(id)
 
-                // Realtime del chat específico
                 val canalChat = SupabaseConnectionApp.client.realtime.channel("chat_$id")
                 val flujo = canalChat.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
                     table = "mensajes"
@@ -68,15 +66,24 @@ fun IndividualChatScreen(navController: NavController, receiverId: String, recei
                 title = { Text(receiverName) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 }
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
             LazyColumn(
-                modifier = Modifier.weight(1f).padding(8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(listaMensajes) { msj ->
@@ -86,33 +93,41 @@ fun IndividualChatScreen(navController: NavController, receiverId: String, recei
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = nuevoMensajeTexto,
                     onValueChange = { nuevoMensajeTexto = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Mensaje") },
+                    placeholder = { Text(stringResource(R.string.message)) },
                     shape = RoundedCornerShape(25.dp)
                 )
-                IconButton(onClick = {
-                    val idConv = conversacionId
-                    val miId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id
-                    if (idConv != null && miId != null && nuevoMensajeTexto.isNotBlank()) {
-                        scope.launch {
-                            val msj = MensajeDto(
-                                conversacion_id = idConv,
-                                remitente_id = miId,
-                                contenido = nuevoMensajeTexto
-                            )
-                            if (consultaas.enviarMensaje(msj)) {
-                                nuevoMensajeTexto = ""
+
+                IconButton(
+                    onClick = {
+                        val idConv = conversacionId
+                        val miId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id
+                        if (idConv != null && miId != null && nuevoMensajeTexto.isNotBlank()) {
+                            scope.launch {
+                                val msj = MensajeDto(
+                                    conversacion_id = idConv,
+                                    remitente_id = miId,
+                                    contenido = nuevoMensajeTexto
+                                )
+                                if (consultaas.enviarMensaje(msj)) {
+                                    nuevoMensajeTexto = ""
+                                }
                             }
                         }
                     }
-                }) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enviar")
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = stringResource(R.string.send)
+                    )
                 }
             }
         }
@@ -121,16 +136,32 @@ fun IndividualChatScreen(navController: NavController, receiverId: String, recei
 
 @Composable
 fun ChatBubble(text: String, esMio: Boolean) {
+    val bubbleColor = if (esMio) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    val textColor = if (esMio) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = if (esMio) Alignment.End else Alignment.Start
     ) {
         Surface(
-            color = if (esMio) Color(0xFFD1F4FF) else Color(0xFFF0F0F0),
+            color = bubbleColor,
             shape = RoundedCornerShape(12.dp),
             shadowElevation = 1.dp
         ) {
-            Text(text, modifier = Modifier.padding(12.dp))
+            Text(
+                text = text,
+                color = textColor,
+                modifier = Modifier.padding(12.dp)
+            )
         }
     }
 }

@@ -43,7 +43,7 @@ fun PerfilUsuarioScreen(navController: NavController) {
     }
 
     AppScaffold(
-        nombreUsuario = usuario?.nombre ?: "Usuario",
+        nombreUsuario = usuario?.nombre ?: stringResource(R.string.user),
         selectedIndex = selectedIndex,
         onItemSelected = { index ->
             when (index) {
@@ -75,7 +75,7 @@ fun PerfilUsuarioScreen(navController: NavController) {
                 usuario?.let { datos ->
                     DatosPerfilDeUsuario(datos)
                 } ?: Text(
-                    text = "No se pudieron cargar los datos",
+                    text = stringResource(R.string.could_not_load_data),
                     modifier = Modifier.align(Alignment.Center)
                 )
             }

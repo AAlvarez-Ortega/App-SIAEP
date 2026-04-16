@@ -36,23 +36,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.ChatPreviewDto
 import com.example.app_sisaep.model.dto.UsuarioDto
 import com.example.app_sisaep.viewModel.consultaas
 
 @Composable
 fun SectionChat(navController: NavController) {
-    val scope = rememberCoroutineScope()
 
     // 1. Estados
     var verContactos by remember { mutableStateOf(false) }
@@ -99,11 +99,18 @@ fun SectionChat(navController: NavController) {
                 ) {
                     if (mostrandoContactos) {
                         IconButton(onClick = { verContactos = false }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = stringResource(R.string.back)
+                            )
                         }
                     }
                     Text(
-                        text = if (mostrandoContactos) "Seleccionar contacto" else "Mensajes",
+                        text = if (mostrandoContactos) {
+                            stringResource(R.string.select_contact)
+                        } else {
+                            stringResource(R.string.messages)
+                        },
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
@@ -117,7 +124,7 @@ fun SectionChat(navController: NavController) {
                     if (mostrandoContactos) {
                         // VISTA DE CONTACTOS
                         if (listaContactos.isEmpty()) {
-                            EmptyStateMsg("No se encontraron contactos")
+                            EmptyStateMsg(stringResource(R.string.no_contacts_found))
                         } else {
                             LazyColumn(modifier = Modifier.fillMaxSize()) {
                                 items(listaContactos) { usuario ->
@@ -132,7 +139,7 @@ fun SectionChat(navController: NavController) {
                     } else {
                         // VISTA DE MENSAJES ACTIVOS
                         if (listaConversaciones.isEmpty()) {
-                            EmptyStateMsg("Aún no tienes conversaciones")
+                            EmptyStateMsg(stringResource(R.string.no_conversations_yet))
                         } else {
                             LazyColumn(modifier = Modifier.fillMaxSize()) {
                                 items(listaConversaciones) { chat ->
@@ -161,7 +168,11 @@ fun SectionChat(navController: NavController) {
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Nuevo Chat", tint = Color.White)
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.new_chat),
+                    tint = Color.White
+                )
             }
         }
     }

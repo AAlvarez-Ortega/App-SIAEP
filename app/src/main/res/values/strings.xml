@@ -227,4 +227,31 @@
     <string name="expires_label">Expira:</string>
 
     <string name="ok_button">OK</string>
+
+    <string name="back">Regresar</string>
+    <string name="message">Mensaje</string>
+    <string name="send">Enviar</string>
+
+    <string name="select_contact">Seleccionar contacto</string>
+    <string name="messages">Mensajes</string>
+    <string name="no_contacts_found">No se encontraron contactos</string>
+    <string name="no_conversations_yet">Aún no tienes conversaciones</string>
+    <string name="new_chat">Nuevo chat</string>
+
+    <string name="my_classes">Mis Clases</string>
+
+    <string name="my_groups">Mis Grupos</string>
+
+    <string name="personal_info">Información Personal</string>
+    <string name="employee_id">Boleta / Empleado</string>
+    <string name="curp">CURP</string>
+    <string name="academic_info">Datos Académicos</string>
+    <string name="school_cct">CCT Escuela</string>
+    <string name="full_name">Nombre Completo</string>
+    <string name="student">Alumno</string>
+    <string name="teacher">Docente</string>
+    <string name="administrator">Administrador</string>
+
+    <string name="could_not_load_data">No se pudieron cargar los datos</string>
+    <string name="user">Usuario</string>
 </resources>
