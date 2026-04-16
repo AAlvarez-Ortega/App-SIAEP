@@ -69,6 +69,7 @@ fun CalendarioScreen(navController: NavController) {
                 launchSingleTop = true
             }
         },
+        onUserClick = { navController.navigate(Routes.Perfil) },
         navItems = navItems
     ) { innerPadding ->
 

@@ -86,13 +86,15 @@ fun AgendaScreen(navController: NavController) {
         },
         onGenerateQrClick = { navController.navigate(Routes.GenerarQR) },
         onReadQrClick = { navController.navigate(Routes.ScanQR) },
-        onConfigClick = { navController.navigate("config") },
+        onConfigClick = { navController.navigate(Routes.Config) },
+
         onLogoutClick = {
             navController.navigate(Routes.Login) {
                 popUpTo(0)
                 launchSingleTop = true
             }
         },
+        onUserClick = { navController.navigate(Routes.Perfil) },
         navItems = navItems
     ) { padding ->
 

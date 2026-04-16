@@ -1,4 +1,4 @@
-package com.example.app_sisaep.view.screens
+package com.example.app_sisaep.view.screens.perfilUsuario
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,25 +8,25 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.app_sisaep.R
+import com.example.app_sisaep.model.dto.UsuarioDto
 import com.example.app_sisaep.view.navigation.Routes
-import com.example.app_sisaep.view.screens.Btncreateavisos.BtnCreateAviso
-import com.example.app_sisaep.view.screens.noticias.InicioNoticias
+import com.example.app_sisaep.view.screens.AppScaffold
+import com.example.app_sisaep.view.screens.BottomNavItem
 import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
-import okhttp3.Route
-
 
 @Composable
-fun HomeScreen(navController: NavController) {
-    var nombreReal by remember { mutableStateOf("") }
-    var selectedIndex by remember { mutableIntStateOf(0) }
-    var showCreateDialog by remember { mutableStateOf(false) }
+fun PerfilUsuarioScreen(navController: NavController) {
+    var usuario by remember { mutableStateOf<UsuarioDto?>(null) }
+    var cargando by remember { mutableStateOf(true) }
+    var selectedIndex by remember { mutableIntStateOf(4) }
 
     val navItems = listOf(
         BottomNavItem(stringResource(R.string.home)) { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
@@ -36,17 +36,16 @@ fun HomeScreen(navController: NavController) {
     )
 
     LaunchedEffect(Unit) {
-        val usuario = obtenerMisDatos()
-        if (usuario != null) {
-            nombreReal = usuario.nombre
-        }
+        cargando = true
+        val resultado = obtenerMisDatos()
+        usuario = resultado
+        cargando = false
     }
 
     AppScaffold(
-        nombreUsuario = nombreReal,
+        nombreUsuario = usuario?.nombre ?: "Usuario",
         selectedIndex = selectedIndex,
         onItemSelected = { index ->
-            selectedIndex = index
             when (index) {
                 0 -> navController.navigate(Routes.Home)
                 1 -> navController.navigate(Routes.Calendario)
@@ -63,35 +62,23 @@ fun HomeScreen(navController: NavController) {
                 launchSingleTop = true
             }
         },
-        onUserClick = { navController.navigate(Routes.Perfil) },
+        onUserClick = {},
         navItems = navItems
-        // IMPORTANTE: Aquí NO pasamos el floatingActionButton al Scaffold
     ) { innerPadding ->
-
-        // Usamos un Box para que el botón flote solo en esta pantalla
-        Box(modifier = Modifier.fillMaxSize()) {
-
-            // 1. El contenido principal (Noticias)
-            InicioNoticias(
-                modifier = Modifier.padding(paddingValues = innerPadding)
-            )
-
-            // 2. El botón flotante posicionado manualmente
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding) // Respeta las barras del scaffold
-                    .padding(16.dp), // Margen extra para que no pegue a los bordes
-                contentAlignment = Alignment.BottomEnd // Lo manda a la esquina inferior derecha
-            ) {
-                BtnCreateAviso(onClick = {
-                    showCreateDialog = true
-                })
+        Box(modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize()
+        ) {
+            if (cargando) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else {
+                usuario?.let { datos ->
+                    DatosPerfilDeUsuario(datos)
+                } ?: Text(
+                    text = "No se pudieron cargar los datos",
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
-        }
-
-        if (showCreateDialog) {
-            // Aquí irá tu Diálogo de creación
         }
     }
 }

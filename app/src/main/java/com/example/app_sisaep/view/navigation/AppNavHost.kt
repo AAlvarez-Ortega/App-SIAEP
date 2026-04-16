@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.app_sisaep.view.screens.*
 import com.example.app_sisaep.view.screens.clases.sectionChat.IndividualChatScreen
+import com.example.app_sisaep.view.screens.perfilUsuario.PerfilUsuarioScreen
 
 @Composable
 fun AppNavHost(
@@ -77,6 +78,10 @@ fun AppNavHost(
                 receiverName = userName
             )
         }
+
+
+        //navegacion del perfil de usuario
+        composable(Routes.Perfil){ PerfilUsuarioScreen(navController = navController) }
 
     }
 }

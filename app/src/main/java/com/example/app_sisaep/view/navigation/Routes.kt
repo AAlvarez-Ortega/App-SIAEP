@@ -22,5 +22,7 @@ object Routes {
     //chat
     const val IndividualChat = "chat/{userId}/{userName}"
 
+    //perfil de usuario
+    const val Perfil = "perfil"
 
 }

@@ -12,14 +12,9 @@ import com.example.app_sisaep.model.supabase.SupabaseConnection
 import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 
 object consultaas {
-
-
-
-
     suspend fun getEscuelas(): List<EscuelaDto> {
         val client = SupabaseConnection.client
         return client

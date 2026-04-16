@@ -99,7 +99,7 @@ class MainViewModel : ViewModel() {
 
     fun cargarDatosUsuario() {
         viewModelScope.launch {
-            val datos = obtenerMisDatos() // Tu función de Supabase
+            val datos = obtenerMisDatos()
             if (datos != null) {
                 nombreUsuario = datos.nombre
             } else {

@@ -44,10 +44,11 @@ fun AppScaffold(
     onItemSelected: (Int) -> Unit,
     onGenerateQrClick: () -> Unit,
     onReadQrClick: () -> Unit,
-    nombreUsuario: String = "", // Valor por defecto si no hay datos aún
+    nombreUsuario: String = "",
     versionApp: String = "1.0.0",
     onConfigClick: () -> Unit = {},
     onLogoutClick: () -> Unit,
+    onUserClick: () -> Unit,
     navItems: List<BottomNavItem>,
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
@@ -136,8 +137,6 @@ fun AppScaffold(
         }
     ) {
         Scaffold(
-            contentWindowInsets = WindowInsets.safeDrawing,
-            containerColor = scaffoldBackground,
             topBar = {
                 TopAppBar(
                     title = {
@@ -149,9 +148,7 @@ fun AppScaffold(
                         )
                     },
                     navigationIcon = {
-                        IconButton(
-                            onClick = { scope.launch { drawerState.open() } }
-                        ) {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(
                                 imageVector = Icons.Default.Menu,
                                 contentDescription = stringResource(R.string.menu),
@@ -160,9 +157,10 @@ fun AppScaffold(
                         }
                     },
                     actions = {
-                        // El nuevo Avatar circular
+                        // El Avatar ahora es un botón
                         UserAvatar(
                             nombre = nombreUsuario,
+                            onClick = onUserClick, // Pasamos la acción
                             modifier = Modifier.padding(end = 12.dp)
                         )
                     },
@@ -350,22 +348,29 @@ private fun navColors() = NavigationBarItemDefaults.colors(
 )
 
 @Composable
-fun UserAvatar(nombre: String, modifier: Modifier = Modifier) {
-    // Si el nombre está vacío o es nulo, usamos un signo de interrogación o similar
+fun UserAvatar(
+    nombre: String,
+    onClick: () -> Unit, // Nuevo parámetro
+    modifier: Modifier = Modifier
+) {
     val inicial = if (nombre.isNotEmpty()) nombre.take(1).uppercase() else "?"
 
-    Box(
-        modifier = modifier
-            .size(36.dp)
-            .clip(CircleShape)
-            .background(Color.White),
-        contentAlignment = Alignment.Center
+    // Usamos Surface para manejar el clic y la elevación/forma de manera limpia
+    Surface(
+        onClick = onClick,
+        modifier = modifier.size(36.dp),
+        shape = CircleShape,
+        color = Color.White
     ) {
-        Text(
-            text = inicial,
-            style = MaterialTheme.typography.titleMedium,
-            color = Color(0xFF7A003C), // Guinda IPN
-            fontWeight = FontWeight.Bold
-        )
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = inicial,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color(0xFF7A003C), // Guinda IPN
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
