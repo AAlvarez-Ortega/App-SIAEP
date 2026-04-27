@@ -8,35 +8,15 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,99 +25,173 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.ChatPreviewDto
 import com.example.app_sisaep.model.dto.UsuarioDto
+import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import com.example.app_sisaep.viewModel.consultaas
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.realtime
+import kotlinx.coroutines.launch
 
 @Composable
 fun SectionChat(navController: NavController) {
 
-    // 1. Estados
     var verContactos by remember { mutableStateOf(false) }
     var listaContactos by remember { mutableStateOf<List<UsuarioDto>>(emptyList()) }
     var listaConversaciones by remember { mutableStateOf<List<ChatPreviewDto>>(emptyList()) }
     var cargando by remember { mutableStateOf(true) }
 
-    // 2. Carga de datos y Realtime
-    LaunchedEffect(Unit) {
-        cargando = true
+    val scope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    suspend fun cargarBandeja() {
         try {
             val misDatos = consultaas.obtenerMisDatos()
+
             if (misDatos != null) {
                 listaContactos = consultaas.obtenerContactosPorEscuela(misDatos.escuela_cct)
-                // Aquí es donde fallaba por el permiso de RLS
                 listaConversaciones = consultaas.obtenerMisChatsActivosOrdenados()
             }
         } catch (e: Exception) {
-            println("Error cargando sección chat: ${e.message}")
+            println("Error actualizando bandeja de chat: ${e.message}")
         }
-        cargando = false
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scope.launch {
+                    cargarBandeja()
+                }
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        cargando = true
+
+        try {
+            val misDatos = consultaas.obtenerMisDatos()
+
+            if (misDatos != null) {
+                listaContactos = consultaas.obtenerContactosPorEscuela(misDatos.escuela_cct)
+                listaConversaciones = consultaas.obtenerMisChatsActivosOrdenados()
+                cargando = false
+
+                val canalMensajes = SupabaseConnectionApp.client.realtime.channel(
+                    "bandeja_chats_${misDatos.id}"
+                )
+
+                val flujoMensajes = canalMensajes.postgresChangeFlow<PostgresAction.Insert>(
+                    schema = "public"
+                ) {
+                    table = "mensajes"
+                }
+
+                canalMensajes.subscribe()
+
+                flujoMensajes.collect {
+                    listaConversaciones = consultaas.obtenerMisChatsActivosOrdenados()
+                }
+            } else {
+                cargando = false
+            }
+        } catch (e: Exception) {
+            println("Error cargando sección chat: ${e.message}")
+            cargando = false
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // 3. Contenido Animado (Scroll hacia la derecha/izquierda)
         AnimatedContent(
             targetState = verContactos,
             transitionSpec = {
-                if (targetState) { // Hacia la derecha (Contactos)
+                if (targetState) {
                     slideInHorizontally(animationSpec = tween(400)) { it } + fadeIn() togetherWith
                             slideOutHorizontally(animationSpec = tween(400)) { -it } + fadeOut()
-                } else { // Hacia la izquierda (Chats)
+                } else {
                     slideInHorizontally(animationSpec = tween(400)) { -it } + fadeIn() togetherWith
                             slideOutHorizontally(animationSpec = tween(400)) { it } + fadeOut()
                 }
-            }, label = "ChatTransition"
+            },
+            label = "ChatTransition"
         ) { mostrandoContactos ->
-            Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
 
-                // Cabecera Dinámica
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 8.dp)
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
                 ) {
                     if (mostrandoContactos) {
                         IconButton(onClick = { verContactos = false }) {
                             Icon(
-                                Icons.Default.ArrowBack,
+                                imageVector = Icons.Default.ArrowBack,
                                 contentDescription = stringResource(R.string.back)
                             )
                         }
                     }
+
                     Text(
                         text = if (mostrandoContactos) {
                             stringResource(R.string.select_contact)
                         } else {
                             stringResource(R.string.messages)
                         },
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
 
                 if (cargando) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator()
                     }
                 } else {
                     if (mostrandoContactos) {
-                        // VISTA DE CONTACTOS
                         if (listaContactos.isEmpty()) {
                             EmptyStateMsg(stringResource(R.string.no_contacts_found))
                         } else {
                             LazyColumn(modifier = Modifier.fillMaxSize()) {
                                 items(listaContactos) { usuario ->
                                     val nombreFull = "${usuario.nombre} ${usuario.apellido_paterno}"
+
                                     UserChatItem(nombre = nombreFull) {
                                         navController.navigate("chat/${usuario.id}/$nombreFull")
                                     }
-                                    HorizontalDivider(modifier = Modifier.padding(start = 76.dp), thickness = 0.5.dp, color = Color.LightGray.copy(0.4f))
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(start = 76.dp),
+                                        thickness = 0.5.dp,
+                                        color = Color.LightGray.copy(0.4f)
+                                    )
                                 }
                             }
                         }
                     } else {
-                        // VISTA DE MENSAJES ACTIVOS
                         if (listaConversaciones.isEmpty()) {
                             EmptyStateMsg(stringResource(R.string.no_conversations_yet))
                         } else {
@@ -147,9 +201,16 @@ fun SectionChat(navController: NavController) {
                                         nombre = chat.nombreCompleto,
                                         subtitulo = chat.ultimoMensaje
                                     ) {
-                                        navController.navigate("chat/${chat.usuarioId}/${chat.nombreCompleto}")
+                                        navController.navigate(
+                                            "chat/${chat.usuarioId}/${chat.nombreCompleto}"
+                                        )
                                     }
-                                    HorizontalDivider(modifier = Modifier.padding(start = 76.dp), thickness = 0.5.dp, color = Color.LightGray.copy(0.4f))
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(start = 76.dp),
+                                        thickness = 0.5.dp,
+                                        color = Color.LightGray.copy(0.4f)
+                                    )
                                 }
                             }
                         }
@@ -158,7 +219,6 @@ fun SectionChat(navController: NavController) {
             }
         }
 
-        // 4. Botón Flotante (+)
         if (!verContactos) {
             FloatingActionButton(
                 onClick = { verContactos = true },
@@ -169,7 +229,7 @@ fun SectionChat(navController: NavController) {
                 shape = CircleShape
             ) {
                 Icon(
-                    Icons.Default.Add,
+                    imageVector = Icons.Default.Add,
                     contentDescription = stringResource(R.string.new_chat),
                     tint = Color.White
                 )
@@ -234,7 +294,14 @@ fun UserChatItem(
 
 @Composable
 fun EmptyStateMsg(text: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = text, color = Color.Gray, style = MaterialTheme.typography.bodyLarge)
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = Color.Gray,
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }
