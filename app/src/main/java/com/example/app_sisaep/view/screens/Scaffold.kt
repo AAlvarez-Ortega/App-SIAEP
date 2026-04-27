@@ -69,6 +69,7 @@ fun AppScaffold(
     val scope = rememberCoroutineScope()
     var qrMenuExpanded by remember { mutableStateOf(false) }
 
+    val noInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
     val navBarsBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     ModalNavigationDrawer(
@@ -80,6 +81,7 @@ fun AppScaffold(
                     .fillMaxHeight()
                     .width(300.dp)
                     .background(drawerBackground)
+                    .statusBarsPadding()
                     .padding(16.dp)
             ) {
                 Text(
@@ -137,8 +139,11 @@ fun AppScaffold(
         }
     ) {
         Scaffold(
+            contentWindowInsets = noInsets,
             topBar = {
                 TopAppBar(
+                    modifier = Modifier.statusBarsPadding(),
+                    windowInsets = noInsets,
                     title = {
                         Text(
                             text = stringResource(R.string.welcome_user, nombreUsuario),
@@ -157,10 +162,9 @@ fun AppScaffold(
                         }
                     },
                     actions = {
-                        // El Avatar ahora es un botón
                         UserAvatar(
                             nombre = nombreUsuario,
-                            onClick = onUserClick, // Pasamos la acción
+                            onClick = onUserClick,
                             modifier = Modifier.padding(end = 12.dp)
                         )
                     },
@@ -173,47 +177,79 @@ fun AppScaffold(
                 )
             },
             bottomBar = {
-                NavigationBar(
-                    containerColor = guindaIPN
+                Box(
+                    modifier = Modifier.navigationBarsPadding(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    @Composable
-                    fun NavLabel(text: String) {
-                        Text(
-                            text = text,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.labelSmall
+                    NavigationBar(
+                        windowInsets = noInsets,
+                        containerColor = guindaIPN
+                    ) {
+                        @Composable
+                        fun NavLabel(text: String) {
+                            Text(
+                                text = text,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+
+                        NavigationBarItem(
+                            icon = navItems[0].icon,
+                            label = { NavLabel(navItems[0].label) },
+                            alwaysShowLabel = false,
+                            selected = selectedIndex == 0,
+                            onClick = {
+                                qrMenuExpanded = false
+                                onItemSelected(0)
+                            },
+                            colors = navColors()
+                        )
+
+                        NavigationBarItem(
+                            icon = navItems[1].icon,
+                            label = { NavLabel(navItems[1].label) },
+                            alwaysShowLabel = false,
+                            selected = selectedIndex == 1,
+                            onClick = {
+                                qrMenuExpanded = false
+                                onItemSelected(1)
+                            },
+                            colors = navColors()
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        NavigationBarItem(
+                            icon = navItems[2].icon,
+                            label = { NavLabel(navItems[2].label) },
+                            alwaysShowLabel = false,
+                            selected = selectedIndex == 2,
+                            onClick = {
+                                qrMenuExpanded = false
+                                onItemSelected(2)
+                            },
+                            colors = navColors()
+                        )
+
+                        NavigationBarItem(
+                            icon = navItems[3].icon,
+                            label = { NavLabel(navItems[3].label) },
+                            alwaysShowLabel = false,
+                            selected = selectedIndex == 3,
+                            onClick = {
+                                qrMenuExpanded = false
+                                onItemSelected(3)
+                            },
+                            colors = navColors()
                         )
                     }
 
-                    NavigationBarItem(
-                        icon = navItems[0].icon,
-                        label = { NavLabel(navItems[0].label) },
-                        alwaysShowLabel = false,
-                        selected = selectedIndex == 0,
-                        onClick = {
-                            qrMenuExpanded = false
-                            onItemSelected(0)
-                        },
-                        colors = navColors()
-                    )
-
-                    NavigationBarItem(
-                        icon = navItems[1].icon,
-                        label = { NavLabel(navItems[1].label) },
-                        alwaysShowLabel = false,
-                        selected = selectedIndex == 1,
-                        onClick = {
-                            qrMenuExpanded = false
-                            onItemSelected(1)
-                        },
-                        colors = navColors()
-                    )
-
                     Box(
                         modifier = Modifier
-                            .size(55.dp)
-                            .offset(y = (-3).dp)
+                            .size(58.dp)
+                            .offset(y = (-6).dp)
                             .shadow(10.dp, CircleShape)
                             .clip(CircleShape)
                             .background(qrCenterButtonBackground),
@@ -230,30 +266,6 @@ fun AppScaffold(
                             )
                         }
                     }
-
-                    NavigationBarItem(
-                        icon = navItems[2].icon,
-                        label = { NavLabel(navItems[2].label) },
-                        alwaysShowLabel = false,
-                        selected = selectedIndex == 2,
-                        onClick = {
-                            qrMenuExpanded = false
-                            onItemSelected(2)
-                        },
-                        colors = navColors()
-                    )
-
-                    NavigationBarItem(
-                        icon = navItems[3].icon,
-                        label = { NavLabel(navItems[3].label) },
-                        alwaysShowLabel = false,
-                        selected = selectedIndex == 3,
-                        onClick = {
-                            qrMenuExpanded = false
-                            onItemSelected(3)
-                        },
-                        colors = navColors()
-                    )
                 }
             },
             floatingActionButton = floatingActionButton
@@ -262,8 +274,9 @@ fun AppScaffold(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(scaffoldBackground)
+                    .padding(paddingValues)
             ) {
-                content(paddingValues)
+                content(PaddingValues(0.dp))
 
                 if (qrMenuExpanded) {
                     Box(
@@ -272,7 +285,9 @@ fun AppScaffold(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { qrMenuExpanded = false }
+                            ) {
+                                qrMenuExpanded = false
+                            }
                     )
                 }
 
@@ -350,12 +365,11 @@ private fun navColors() = NavigationBarItemDefaults.colors(
 @Composable
 fun UserAvatar(
     nombre: String,
-    onClick: () -> Unit, // Nuevo parámetro
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val inicial = if (nombre.isNotEmpty()) nombre.take(1).uppercase() else "?"
 
-    // Usamos Surface para manejar el clic y la elevación/forma de manera limpia
     Surface(
         onClick = onClick,
         modifier = modifier.size(36.dp),
@@ -368,7 +382,7 @@ fun UserAvatar(
             Text(
                 text = inicial,
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF7A003C), // Guinda IPN
+                color = Color(0xFF7A003C),
                 fontWeight = FontWeight.Bold
             )
         }

@@ -25,7 +25,7 @@ fun DeportesSection() {
     Text(
         text = stringResource(R.string.sports),
         style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onBackground, // 🔥 FIX
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.padding(bottom = 8.dp)
     )
 
@@ -47,6 +47,12 @@ fun DeportesSection() {
 
 @Composable
 fun DeporteCard(deporte: Deporte) {
+    val circleColor = if (MaterialTheme.colorScheme.background == Color(0xFF121212)) {
+        Color(0xFF616161) // gris en modo oscuro
+    } else {
+        Color(0xFF4CAF50) // verde en modo claro
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -55,7 +61,7 @@ fun DeporteCard(deporte: Deporte) {
             modifier = Modifier.size(100.dp),
             shape = CircleShape,
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF4CAF50)
+                containerColor = circleColor
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
@@ -77,7 +83,7 @@ fun DeporteCard(deporte: Deporte) {
         Text(
             text = deporte.nombre,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground // 🔥 FIX
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }

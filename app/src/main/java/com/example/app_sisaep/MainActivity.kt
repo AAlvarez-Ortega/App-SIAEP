@@ -1,18 +1,22 @@
 package com.example.app_sisaep
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.compose.rememberNavController
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.compose.rememberNavController
 import com.example.app_sisaep.model.dto.AvisoGlobal
 import com.example.app_sisaep.ui.theme.AppSisaepTheme
 import com.example.app_sisaep.view.navigation.AppNavHost
@@ -26,7 +30,12 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         supportActionBar?.hide()
+
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        window.statusBarColor = Color.BLACK
+        window.navigationBarColor = Color.BLACK
 
         setContent {
             val context = LocalContext.current
@@ -61,8 +70,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             AppSisaepTheme(darkTheme = darkMode) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Surface(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .safeDrawingPadding()
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
                         AppNavHost(
                             navController = navController,
                             darkMode = darkMode,
@@ -74,7 +90,9 @@ class MainActivity : AppCompatActivity() {
                         PantallaCompletaAviso(
                             aviso = aviso,
                             onConfirm = {
-                                sharedPrefs.edit().putString("ultimo_aviso_id", aviso.id).apply()
+                                sharedPrefs.edit()
+                                    .putString("ultimo_aviso_id", aviso.id)
+                                    .apply()
                                 avisoUrgente = null
                             }
                         )
@@ -92,11 +110,7 @@ class MainViewModel : ViewModel() {
     fun cargarDatosUsuario() {
         viewModelScope.launch {
             val datos = obtenerMisDatos()
-            if (datos != null) {
-                nombreUsuario = datos.nombre
-            } else {
-                nombreUsuario = "Invitado"
-            }
+            nombreUsuario = datos?.nombre ?: "Invitado"
         }
     }
 }

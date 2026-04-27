@@ -3,6 +3,7 @@ package com.example.app_sisaep.view.screens.clases.sectionChat
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -11,7 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -25,18 +26,38 @@ import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.decodeRecord
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IndividualChatScreen(navController: NavController, receiverId: String, receiverName: String) {
+fun IndividualChatScreen(
+    navController: NavController,
+    receiverId: String,
+    receiverName: String
+) {
     val scope = rememberCoroutineScope()
+
     var conversacionId by remember { mutableStateOf<String?>(null) }
     var listaMensajes by remember { mutableStateOf<List<MensajeDto>>(emptyList()) }
     var nuevoMensajeTexto by remember { mutableStateOf("") }
 
+    val listState = rememberLazyListState()
+
+    suspend fun scrollAlUltimoMensaje() {
+        if (listaMensajes.isNotEmpty()) {
+            delay(160)
+            listState.animateScrollToItem(listaMensajes.lastIndex)
+        }
+    }
+
+    LaunchedEffect(listaMensajes.size) {
+        scrollAlUltimoMensaje()
+    }
+
     LaunchedEffect(receiverId) {
         val miId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id
+
         if (miId != null) {
             val id = consultaas.obtenerOCrearConversacion(miId, receiverId)
             conversacionId = id
@@ -45,13 +66,19 @@ fun IndividualChatScreen(navController: NavController, receiverId: String, recei
                 listaMensajes = consultaas.obtenerMensajes(id)
 
                 val canalChat = SupabaseConnectionApp.client.realtime.channel("chat_$id")
-                val flujo = canalChat.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+
+                val flujo = canalChat.postgresChangeFlow<PostgresAction.Insert>(
+                    schema = "public"
+                ) {
                     table = "mensajes"
                     filter = "conversacion_id=eq.$id"
                 }
+
                 canalChat.subscribe()
+
                 flujo.collect { action ->
                     val nuevo = action.decodeRecord<MensajeDto>()
+
                     if (listaMensajes.none { it.id == nuevo.id }) {
                         listaMensajes = listaMensajes + nuevo
                     }
@@ -61,13 +88,14 @@ fun IndividualChatScreen(navController: NavController, receiverId: String, recei
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { Text(receiverName) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = stringResource(R.string.back)
                         )
                     }
@@ -75,59 +103,100 @@ fun IndividualChatScreen(navController: NavController, receiverId: String, recei
             )
         }
     ) { padding ->
-        Column(
+
+        Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            color = MaterialTheme.colorScheme.background
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                items(listaMensajes) { msj ->
-                    val esMio = msj.remitente_id != receiverId
-                    ChatBubble(text = msj.contenido, esMio = esMio)
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(
+                        items = listaMensajes,
+                        key = { mensaje ->
+                            mensaje.id ?: "${mensaje.remitente_id}_${mensaje.contenido}"
+                        }
+                    ) { msj ->
+                        val esMio = msj.remitente_id != receiverId
+
+                        ChatBubble(
+                            text = msj.contenido,
+                            esMio = esMio
+                        )
+                    }
                 }
-            }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = nuevoMensajeTexto,
-                    onValueChange = { nuevoMensajeTexto = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text(stringResource(R.string.message)) },
-                    shape = RoundedCornerShape(25.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = nuevoMensajeTexto,
+                        onValueChange = { nuevoMensajeTexto = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { focusState ->
+                                if (focusState.isFocused) {
+                                    scope.launch {
+                                        delay(350)
+                                        if (listaMensajes.isNotEmpty()) {
+                                            listState.animateScrollToItem(listaMensajes.lastIndex)
+                                        }
+                                    }
+                                }
+                            },
+                        placeholder = {
+                            Text(stringResource(R.string.message))
+                        },
+                        shape = RoundedCornerShape(25.dp)
+                    )
 
-                IconButton(
-                    onClick = {
-                        val idConv = conversacionId
-                        val miId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id
-                        if (idConv != null && miId != null && nuevoMensajeTexto.isNotBlank()) {
-                            scope.launch {
-                                val msj = MensajeDto(
-                                    conversacion_id = idConv,
-                                    remitente_id = miId,
-                                    contenido = nuevoMensajeTexto
-                                )
-                                if (consultaas.enviarMensaje(msj)) {
-                                    nuevoMensajeTexto = ""
+                    IconButton(
+                        onClick = {
+                            val idConv = conversacionId
+                            val miId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id
+                            val texto = nuevoMensajeTexto.trim()
+
+                            if (
+                                idConv != null &&
+                                miId != null &&
+                                texto.isNotBlank()
+                            ) {
+                                scope.launch {
+                                    val msj = MensajeDto(
+                                        conversacion_id = idConv,
+                                        remitente_id = miId,
+                                        contenido = texto
+                                    )
+
+                                    if (consultaas.enviarMensaje(msj)) {
+                                        nuevoMensajeTexto = ""
+                                        listaMensajes = consultaas.obtenerMensajes(idConv)
+
+                                        delay(120)
+                                        scrollAlUltimoMensaje()
+                                    }
                                 }
                             }
                         }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = stringResource(R.string.send)
+                        )
                     }
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Send,
-                        contentDescription = stringResource(R.string.send)
-                    )
                 }
             }
         }
@@ -135,7 +204,10 @@ fun IndividualChatScreen(navController: NavController, receiverId: String, recei
 }
 
 @Composable
-fun ChatBubble(text: String, esMio: Boolean) {
+fun ChatBubble(
+    text: String,
+    esMio: Boolean
+) {
     val bubbleColor = if (esMio) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
@@ -150,7 +222,11 @@ fun ChatBubble(text: String, esMio: Boolean) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = if (esMio) Alignment.End else Alignment.Start
+        horizontalAlignment = if (esMio) {
+            Alignment.End
+        } else {
+            Alignment.Start
+        }
     ) {
         Surface(
             color = bubbleColor,

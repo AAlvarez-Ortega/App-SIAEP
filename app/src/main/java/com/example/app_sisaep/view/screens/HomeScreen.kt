@@ -3,6 +3,7 @@ package com.example.app_sisaep.view.screens
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
@@ -19,8 +20,6 @@ import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.view.screens.Btncreateavisos.BtnCreateAviso
 import com.example.app_sisaep.view.screens.noticias.InicioNoticias
 import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
-import okhttp3.Route
-
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -65,33 +64,37 @@ fun HomeScreen(navController: NavController) {
         },
         onUserClick = { navController.navigate(Routes.Perfil) },
         navItems = navItems
-        // IMPORTANTE: Aquí NO pasamos el floatingActionButton al Scaffold
     ) { innerPadding ->
 
-        // Usamos un Box para que el botón flote solo en esta pantalla
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding) // 🔥 Respeta TopBar y BottomBar
+                .navigationBarsPadding() // 🔥 Respeta botones del sistema (cel de tu profe)
+        ) {
 
-            // 1. El contenido principal (Noticias)
+            // 🔹 Contenido principal
             InicioNoticias(
-                modifier = Modifier.padding(paddingValues = innerPadding)
+                modifier = Modifier.fillMaxSize()
             )
 
-            // 2. El botón flotante posicionado manualmente
+            // 🔹 Botón flotante
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding) // Respeta las barras del scaffold
-                    .padding(16.dp), // Margen extra para que no pegue a los bordes
-                contentAlignment = Alignment.BottomEnd // Lo manda a la esquina inferior derecha
+                    .padding(16.dp),
+                contentAlignment = Alignment.BottomEnd
             ) {
-                BtnCreateAviso(onClick = {
-                    showCreateDialog = true
-                })
+                BtnCreateAviso(
+                    onClick = {
+                        showCreateDialog = true
+                    }
+                )
             }
         }
 
         if (showCreateDialog) {
-            // Aquí irá tu Diálogo de creación
+            // Aquí irá tu diálogo
         }
     }
 }

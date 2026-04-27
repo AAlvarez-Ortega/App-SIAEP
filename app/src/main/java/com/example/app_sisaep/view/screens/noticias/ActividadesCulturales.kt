@@ -1,5 +1,6 @@
 package com.example.app_sisaep.view.screens.noticias
 
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +55,12 @@ fun ActividadesCulturalesSection() {
 
 @Composable
 fun ActividadCard(actividad: Actividad) {
+
+    val circleColor = if (MaterialTheme.colorScheme.background == Color(0xFF121212)) {
+        Color(0xFF616161) // gris en modo oscuro
+    } else {
+        Color(0xFF4CAF50) // verde en modo claro
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -62,7 +69,7 @@ fun ActividadCard(actividad: Actividad) {
             modifier = Modifier.size(100.dp),
             shape = CircleShape,
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF4CAF50)
+                containerColor = circleColor
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
