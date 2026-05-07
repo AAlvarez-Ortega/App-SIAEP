@@ -19,11 +19,12 @@ import com.example.app_sisaep.model.dto.UsuarioDto
 
 @Composable
 fun DatosPerfilDeUsuario(usuario: UsuarioDto) {
-    val tipoUsuarioTexto = when (usuario.tipo_usuario.uppercase()) {
-        "ALUMNO" -> stringResource(R.string.student)
-        "DOCENTE" -> stringResource(R.string.teacher)
-        "ADMIN" -> stringResource(R.string.administrator)
-        else -> usuario.tipo_usuario.uppercase()
+    // 1. Nueva lógica de identificación basada en el ID numérico
+    val tipoUsuarioTexto = when (usuario.id_tipo_usuario) {
+        1 -> stringResource(R.string.student)       // Alumno
+        2 -> stringResource(R.string.teacher)       // Profesor
+        3 -> stringResource(R.string.administrator) // Administrativo
+        else -> "Usuario"                           // Caso genérico
     }
 
     Column(
@@ -55,6 +56,8 @@ fun DatosPerfilDeUsuario(usuario: UsuarioDto) {
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
+
+        // Aquí se muestra el texto identificado internamente
         Text(
             text = tipoUsuarioTexto,
             style = MaterialTheme.typography.bodyMedium,

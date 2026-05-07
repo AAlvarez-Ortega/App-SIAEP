@@ -11,7 +11,7 @@ data class UsuarioDto(
     val boleta_o_empleado: String,
     val correo: String,
     val curp: String,
-    val tipo_usuario: String,
+    val id_tipo_usuario: Int,
     val escuela_cct: String,
     val creado_en: String? = null // timestamptz (opcional)
 )

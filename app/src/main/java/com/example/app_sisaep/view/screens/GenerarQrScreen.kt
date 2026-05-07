@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.app_sisaep.R
+import com.example.app_sisaep.model.dto.UsuarioDto
 import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.viewModel.AuthApp
@@ -44,15 +45,7 @@ fun GenerarQrScreen(navController: NavController) {
     val session = remember { runCatching { AuthApp.requireSession() }.getOrNull() }
     val userId = session?.user?.id // coincide con usuarios.id
 
-    LaunchedEffect(Unit) {
-        val usuario = obtenerMisDatos()
-        if (usuario != null) {
-            nombreReal = usuario.nombre
-        }
-    }
-
     LaunchedEffect(userId) {
-
         if (userId.isNullOrBlank()) {
             cargando = false
             error = "No hay sesión activa."
@@ -62,40 +55,29 @@ fun GenerarQrScreen(navController: NavController) {
         cargando = true
         error = null
 
-        val tipoUsuarioReal = try {
+        try {
+            // 1. Obtenemos el objeto usuario completo (ya normalizado)
+            val usuario = obtenerMisDatos()
 
-            val rows: List<JsonObject> =
-                SupabaseConnectionApp.client.postgrest["usuarios"]
-                    .select {
-                        filter { eq("id", userId) }
-                        limit(1)
-                    }
-                    .decodeList()
+            if (usuario != null) {
+                nombreReal = usuario.nombre
 
-            rows.firstOrNull()
-                ?.get("tipo_usuario")
-                ?.jsonPrimitive
-                ?.contentOrNull
-                ?.trim()
-                ?.lowercase()
-
+                // 2. Iniciamos el loop del QR usando el ID numérico
+                // Corregimos el typo: idTipoUsuario (sin la 't' extra)
+                QrGenerate.dynamicQrLoop(
+                    userId = userId,
+                    idTipoUsuario = usuario.id_tipo_usuario
+                ) { bitmap ->
+                    qrBitmap = bitmap
+                    cargando = false
+                }
+            } else {
+                cargando = false
+                error = "No se pudo obtener los datos del usuario."
+            }
         } catch (e: Exception) {
-            null
-        }
-
-        if (tipoUsuarioReal.isNullOrBlank()) {
             cargando = false
-            error = "No se pudo obtener el tipo de usuario."
-            return@LaunchedEffect
-        }
-
-        // QR dinámico con datos reales
-        QrGenerate.dynamicQrLoop(
-            userId = userId,
-            rol = tipoUsuarioReal
-        ) { bitmap ->
-            qrBitmap = bitmap
-            cargando = false
+            error = "Error: ${e.message}"
         }
     }
 
