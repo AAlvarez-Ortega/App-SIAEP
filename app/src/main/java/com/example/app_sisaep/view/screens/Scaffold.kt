@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +58,13 @@ fun AppScaffold(
 
     val guindaIPN = Color(0xFF7A003C)
     val blanco = Color.White
+
+    val guindaBrush = Brush.horizontalGradient(
+        listOf(
+            Color(0xFF5C0011),
+            Color(0xFF9B1B30)
+        )
+    )
 
     val drawerBackground = MaterialTheme.colorScheme.surface
     val drawerTextColor = MaterialTheme.colorScheme.onSurface
@@ -141,49 +149,58 @@ fun AppScaffold(
         Scaffold(
             contentWindowInsets = noInsets,
             topBar = {
-                TopAppBar(
-                    modifier = Modifier.statusBarsPadding(),
-                    windowInsets = noInsets,
-                    title = {
-                        Text(
-                            text = stringResource(R.string.welcome_user, nombreUsuario),
-                            color = blanco,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = stringResource(R.string.menu),
-                                tint = blanco
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(guindaBrush)
+                ) {
+                    TopAppBar(
+                        modifier = Modifier.statusBarsPadding(),
+                        windowInsets = noInsets,
+                        title = {
+                            Text(
+                                text = stringResource(R.string.welcome_user, nombreUsuario),
+                                color = blanco,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                        }
-                    },
-                    actions = {
-                        UserAvatar(
-                            nombre = nombreUsuario,
-                            onClick = onUserClick,
-                            modifier = Modifier.padding(end = 12.dp)
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = stringResource(R.string.menu),
+                                    tint = blanco
+                                )
+                            }
+                        },
+                        actions = {
+                            UserAvatar(
+                                nombre = nombreUsuario,
+                                onClick = onUserClick,
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                            titleContentColor = blanco,
+                            navigationIconContentColor = blanco,
+                            actionIconContentColor = blanco
                         )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = guindaIPN,
-                        titleContentColor = blanco,
-                        navigationIconContentColor = blanco,
-                        actionIconContentColor = blanco
                     )
-                )
+                }
             },
             bottomBar = {
                 Box(
-                    modifier = Modifier.navigationBarsPadding(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(guindaBrush)
+                        .navigationBarsPadding(),
                     contentAlignment = Alignment.Center
                 ) {
                     NavigationBar(
                         windowInsets = noInsets,
-                        containerColor = guindaIPN
+                        containerColor = Color.Transparent
                     ) {
                         @Composable
                         fun NavLabel(text: String) {
@@ -268,7 +285,8 @@ fun AppScaffold(
                     }
                 }
             },
-            floatingActionButton = floatingActionButton
+            floatingActionButton = floatingActionButton,
+            containerColor = scaffoldBackground
         ) { paddingValues ->
             Box(
                 modifier = Modifier
