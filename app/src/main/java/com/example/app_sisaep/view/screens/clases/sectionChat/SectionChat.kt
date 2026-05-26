@@ -92,7 +92,7 @@ fun SectionChat(navController: NavController) {
                 cargando = false
 
                 val canalMensajes = SupabaseConnectionApp.client.realtime.channel(
-                    "bandeja_chats_${misDatos.id}"
+                    "bandeja_chats_${misDatos.id_usuario}"
                 )
 
                 val flujoMensajes = canalMensajes.postgresChangeFlow<PostgresAction.Insert>(
@@ -180,7 +180,7 @@ fun SectionChat(navController: NavController) {
                                     val nombreFull = "${usuario.nombre} ${usuario.apellido_paterno}"
 
                                     UserChatItem(nombre = nombreFull) {
-                                        navController.navigate("chat/${usuario.id}/$nombreFull")
+                                        navController.navigate("chat/${usuario.id_usuario}/$nombreFull")
                                     }
 
                                     HorizontalDivider(

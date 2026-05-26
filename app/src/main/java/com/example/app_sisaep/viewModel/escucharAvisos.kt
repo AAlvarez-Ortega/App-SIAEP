@@ -12,58 +12,49 @@ import io.github.jan.supabase.realtime.realtime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 
-/**
- * Función que crea un flujo (Flow) de avisos urgentes en tiempo real.
- */
 suspend fun escucharAvisosUrgentes(): Flow<AvisoGlobal> {
-    // 1. Creamos el canal de Realtime
     val canal = SupabaseConnectionApp.client.realtime.channel("avisos_urgentes")
 
-    // 2. Configuramos el filtro para escuchar solo INSERTs en la tabla avisos_globales
     val flujoCambios = canal.postgresChangeFlow<PostgresAction.Insert>(
         schema = "public"
     ) {
         table = "avisos_globales"
     }
 
-    // 3. Nos suscribimos al canal
     canal.subscribe()
 
-    // 4. Transformamos el flujo para obtener solo avisos que sean "urgentes"
     return flujoCambios.mapNotNull { accion ->
-        val aviso = accion.decodeRecord<AvisoGlobal>()
-        if (aviso.tipo_aviso?.lowercase() == "urgente" && aviso.estado == "activo") {
-            aviso
-        } else {
+        try {
+            val aviso = accion.decodeRecord<AvisoGlobal>()
+            // Simplificado para evitar nulos inesperados en el backend
+            if (aviso.tipo_aviso?.lowercase() == "urgente" && aviso.estado?.lowercase() == "activo") {
+                aviso
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
 }
 
-// En escucharAvisos.kt
-
-// ... tus imports anteriores
-
-// En escucharAvisos.kt
-
 suspend fun obtenerUltimoAvisoUrgente(): AvisoGlobal? {
     return try {
         val cliente = SupabaseConnectionApp.client
 
-        // Buscamos en la tabla avisos_globales
-        val resultado = cliente.from("avisos_globales")
+        // Buscamos en la tabla avisos_globales ordenando por el ID o por fecha más reciente
+        cliente.from("avisos_globales")
             .select {
                 filter {
                     eq("tipo_aviso", "urgente")
                     eq("estado", "activo")
                 }
-                // Ordenamos por el más reciente
                 order("creado_en", order = Order.DESCENDING)
                 limit(1)
             }.decodeSingleOrNull<AvisoGlobal>()
-
-        resultado
     } catch (e: Exception) {
+        println("Error buscando avisos urgentes históricos: ${e.message}")
         e.printStackTrace()
         null
     }

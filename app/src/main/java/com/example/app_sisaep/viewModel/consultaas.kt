@@ -18,7 +18,7 @@ object consultaas {
     suspend fun getEscuelas(): List<EscuelaDto> {
         val client = SupabaseConnection.client
         return client
-            .from("escuelas")
+            .from("sic_escuelas")
             .select {
                 order("nombre", Order.ASCENDING)
             }
@@ -87,9 +87,9 @@ object consultaas {
             val userId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id ?: return null
 
             SupabaseConnectionApp.client
-                .from("usuarios")
+                .from("sic_usuarios")
                 .select {
-                    filter { eq("id", userId) }
+                    filter { eq("id_usuario", userId) }
                 }
                 .decodeSingleOrNull<UsuarioDto>()
         } catch (e: Exception) {
@@ -102,12 +102,12 @@ object consultaas {
         return try {
             val miId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id
             SupabaseConnectionApp.client
-                .from("usuarios")
+                .from("sic_usuarios")
                 .select {
                     filter {
                         eq("escuela_cct", escuelaCct)
                         // Opcional: No mostrarte a ti mismo en la lista de contactos
-                        if (miId != null) neq("id", miId)
+                        if (miId != null) neq("id_usuario", miId)
                     }
                     order("nombre", Order.ASCENDING)
                 }
@@ -210,14 +210,14 @@ object consultaas {
 
                 // Traer datos del otro usuario
                 val usuario = try {
-                    SupabaseConnectionApp.client.from("usuarios").select {
-                        filter { eq("id", otroId) }
+                    SupabaseConnectionApp.client.from("sic_usuarios").select {
+                        filter { eq("id_uduario", otroId) }
                     }.decodeSingleOrNull<UsuarioDto>()
                 } catch (e: Exception) { null }
 
                 if (usuario != null) {
                     listaPreview.add(ChatPreviewDto(
-                        usuarioId = usuario.id,
+                        usuarioId = usuario.id_usuario,
                         nombreCompleto = "${usuario.nombre} ${usuario.apellido_paterno}",
                         ultimoMensaje = ultimoMsj?.contenido ?: "Sin mensajes aún",
                         fechaUltimoMensaje = conv.updated_at ?: conv.creado_en ?: ""

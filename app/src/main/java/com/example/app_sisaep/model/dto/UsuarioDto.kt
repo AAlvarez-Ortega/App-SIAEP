@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UsuarioDto(
-    val id: String, // uuid
+    val id_usuario: String, // uuid
     val nombre: String,
     val apellido_paterno: String,
     val apellido_materno: String,
