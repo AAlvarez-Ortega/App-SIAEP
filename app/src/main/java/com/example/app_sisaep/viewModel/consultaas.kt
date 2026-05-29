@@ -1,8 +1,11 @@
 package com.example.app_sisaep.viewModel
 
+
+import android.util.Log
 import com.example.app_sisaep.model.dto.AvisoGlobal
 import com.example.app_sisaep.model.dto.ChatPreviewDto
 import com.example.app_sisaep.model.dto.ConversacionDto
+import com.example.app_sisaep.model.dto.DiaEscolarDto
 import com.example.app_sisaep.model.dto.EscuelaDto
 import com.example.app_sisaep.model.dto.MensajeDto
 import com.example.app_sisaep.model.dto.SolicitudIdDto
@@ -12,7 +15,11 @@ import com.example.app_sisaep.model.supabase.SupabaseConnection
 import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
+import com.example.app_sisaep.model.dto.CatalogoTipoDiaDto
+
 
 object consultaas {
     suspend fun getEscuelas(): List<EscuelaDto> {
@@ -61,7 +68,7 @@ object consultaas {
 
         val result = client
             .from("solicitudes")
-            .select(columns = io.github.jan.supabase.postgrest.query.Columns.list("estado")) {
+            .select(columns = Columns.list("estado")) {
                 filter { eq("id", id) }
                 limit(1)
             }
@@ -172,7 +179,7 @@ object consultaas {
                     filter { eq("conversacion_id", conversacionId) }
                     order("creado_en", Order.ASCENDING)
                 }.decodeList<MensajeDto>()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }
@@ -203,17 +210,17 @@ object consultaas {
                 val ultimoMsj = try {
                     SupabaseConnectionApp.client.from("mensajes").select {
                         filter { eq("conversacion_id", conv.id) }
-                        order("creado_en", order = io.github.jan.supabase.postgrest.query.Order.DESCENDING)
+                        order("creado_en", order = Order.DESCENDING)
                         limit(1)
                     }.decodeSingleOrNull<MensajeDto>()
-                } catch (e: Exception) { null }
+                } catch (_: Exception) { null }
 
                 // Traer datos del otro usuario
                 val usuario = try {
                     SupabaseConnectionApp.client.from("sic_usuarios").select {
                         filter { eq("id_uduario", otroId) }
                     }.decodeSingleOrNull<UsuarioDto>()
-                } catch (e: Exception) { null }
+                } catch (_: Exception) { null }
 
                 if (usuario != null) {
                     listaPreview.add(ChatPreviewDto(
@@ -228,6 +235,46 @@ object consultaas {
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
+        }
+    }
+
+
+    suspend fun obtenerCalendarioEscolar(fechaFiltro: String): DiaEscolarDto? {
+        return try {
+            // Paso 1: Obtenemos el registro plano de la fecha de forma segura como una lista
+            val diasResultados = SupabaseConnectionApp.client.postgrest["sse_diaescolar"]
+                .select() {
+                    filter {
+                        eq("id_escfecha", fechaFiltro)
+                    }
+                }
+                .decodeList<DiaEscolarDto>()
+
+            val diaEncontrado = diasResultados.firstOrNull()
+
+            // Paso 2: Si la fecha existe en el calendario escolar, traemos su descripción del catálogo
+            if (diaEncontrado != null) {
+                val actividadCatalogo = SupabaseConnectionApp.client.postgrest["sse_ctipodias"]
+                    .select() {
+                        filter {
+                            eq("id_tipodias", diaEncontrado.id_tipodias)
+                        }
+                    }
+                    .decodeList<CatalogoTipoDiaDto>()
+                    .firstOrNull()
+
+                // Sincronizamos la descripción en la propiedad calculada de tu DTO
+                diaEncontrado.descripcionActividad = actividadCatalogo?.descripcion ?: "Actividad Escolar"
+
+                Log.d("SUPABASE_AGENDA", "Match exitoso en Android: ${diaEncontrado.id_escfecha} -> ${diaEncontrado.descripcionActividad}")
+                return diaEncontrado
+            }
+
+            null
+        } catch (e: Exception) {
+            Log.e("SUPABASE_AGENDA", "Error al procesar calendario en Android: ${e.message}")
+            e.printStackTrace()
+            null
         }
     }
 

@@ -3,187 +3,95 @@ package com.example.app_sisaep.view.screens.agenda
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import java.time.LocalDate
-
-import androidx.compose.ui.res.stringResource
-import com.example.app_sisaep.R
-
-data class AgendaEventUi(
-    val id: String,
-    val date: LocalDate,
-    val startTime: String,
-    val title: String,
-    val location: String,
-    val note: String,
-    val typeLabel: String,
-    val badgeColor: androidx.compose.ui.graphics.Color
-)
+import com.example.app_sisaep.model.dto.DiaEscolarDto
 
 @Composable
 fun EventosPorDia(
-    selectedDate: LocalDate,
-    allEvents: List<AgendaEventUi>,
-    modifier: Modifier = Modifier,
-    onEventClick: (AgendaEventUi) -> Unit = {}
-) {
-    val filtered = remember(selectedDate, allEvents) {
-        allEvents.filter { it.date == selectedDate }.sortedBy { it.startTime }
-    }
-
-    if (filtered.isEmpty()) {
-        EmptyAgendaState(
-            title = stringResource(R.string.agenda_empty_title),
-            subtitle = stringResource(R.string.agenda_empty_subtitle),
-            modifier = modifier
-        )
-    } else {
-        LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(bottom = 18.dp)
-        ) {
-            items(filtered, key = { it.id }) { ev ->
-                AgendaEventCard(ev = ev, onClick = { onEventClick(ev) })
-            }
-        }
-    }
-}
-
-@Composable
-private fun AgendaEventCard(
-    ev: AgendaEventUi,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        onClick = onClick
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .clip(CircleShape)
-                    .background(ev.badgeColor)
-            )
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = ev.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = "${ev.startTime} • ${ev.location}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (ev.note.isNotBlank()) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = ev.note,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            Spacer(Modifier.width(10.dp))
-
-            AssistChip(
-                onClick = onClick,
-                label = { Text(ev.typeLabel) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun EmptyAgendaState(
-    title: String,
-    subtitle: String,
+    diaCoincidente: DiaEscolarDto?, // 📥 Recibe el día mapeado desde Supabase
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp)
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(bottom = 18.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (diaCoincidente != null) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Color dinámico para la barra lateral
+                        val colorIndicador = when (diaCoincidente.id_tipodias) {
+                            1, 10 -> Color(0xFF4CAF50) // Inscripción (Verde)
+                            2, 3  -> Color(0xFF2196F3) // Inicio Periodo (Azul)
+                            4     -> Color(0xFFF44336) // Fin Periodo (Rojo)
+                            13    -> Color(0xFFFFEB3B) // Vacaciones (Amarillo)
+                            14, 15 -> Color(0xFF9C27B0) // Asuetos (Morado)
+                            else  -> Color(0xFF8A1F4D)  // Guinda institucional
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .width(6.dp)
+                                .height(54.dp)
+                                .background(colorIndicador, RoundedCornerShape(4.dp))
+                        )
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                text = diaCoincidente.descripcionActividad,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Calendario Oficial • Actividad Tipo ${diaCoincidente.id_tipodias}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No hay actividades programadas para este día",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
         }
     }
-}
-
-fun demoAgendaEvents(
-    context: android.content.Context,
-    primary: androidx.compose.ui.graphics.Color,
-    secondary: androidx.compose.ui.graphics.Color,
-    tertiary: androidx.compose.ui.graphics.Color
-): List<AgendaEventUi> {
-    val today = LocalDate.now()
-    val tomorrow = today.plusDays(1)
-
-    return listOf(
-        AgendaEventUi(
-            id = "1",
-            date = today,
-            startTime = "09:00",
-            title = context.getString(R.string.demo_event_1_title),
-            location = context.getString(R.string.demo_event_1_location),
-            note = context.getString(R.string.demo_event_1_note),
-            typeLabel = context.getString(R.string.demo_event_1_type),
-            badgeColor = primary
-        ),
-        AgendaEventUi(
-            id = "2",
-            date = today,
-            startTime = "13:30",
-            title = context.getString(R.string.demo_event_2_title),
-            location = context.getString(R.string.demo_event_2_location),
-            note = context.getString(R.string.demo_event_2_note),
-            typeLabel = context.getString(R.string.demo_event_2_type),
-            badgeColor = secondary
-        ),
-        AgendaEventUi(
-            id = "3",
-            date = tomorrow,
-            startTime = "10:15",
-            title = context.getString(R.string.demo_event_3_title),
-            location = context.getString(R.string.demo_event_3_location),
-            note = context.getString(R.string.demo_event_3_note),
-            typeLabel = context.getString(R.string.demo_event_3_type),
-            badgeColor = tertiary
-        )
-    )
 }

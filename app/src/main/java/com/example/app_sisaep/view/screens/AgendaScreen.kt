@@ -1,5 +1,6 @@
 package com.example.app_sisaep.view.screens
 
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
@@ -19,11 +20,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -38,12 +35,14 @@ import com.example.app_sisaep.view.screens.agenda.CalDesplegable
 import com.example.app_sisaep.view.screens.agenda.EventosPorDia
 import com.example.app_sisaep.view.screens.agenda.HorarioContent
 import com.example.app_sisaep.view.screens.agenda.NuevoEventoContent
-import com.example.app_sisaep.view.screens.agenda.demoAgendaEvents
+
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
-
 import androidx.compose.ui.res.stringResource
+import com.example.app_sisaep.model.dto.DiaEscolarDto
+import com.example.app_sisaep.view.screens.agenda.formatearFechaEstricta
+import com.example.app_sisaep.viewModel.consultaas.obtenerCalendarioEscolar
 import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
 
 private enum class AgendaBody { EVENTOS, HORARIO, NUEVO_EVENTO }
@@ -52,6 +51,10 @@ private enum class AgendaBody { EVENTOS, HORARIO, NUEVO_EVENTO }
 fun AgendaScreen(navController: NavController) {
     var nombreReal by remember { mutableStateOf("") }
 
+    // 🗄️ Estado para guardar únicamente la actividad de la fecha seleccionada
+    var diaCoincidenteActual by remember { mutableStateOf<DiaEscolarDto?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
     val navItems = listOf(
         BottomNavItem(stringResource(R.string.home)) { Icon(Icons.Filled.Home, null) },
         BottomNavItem(stringResource(R.string.calendar)) { Icon(Icons.Filled.CalendarMonth, null) },
@@ -59,18 +62,31 @@ fun AgendaScreen(navController: NavController) {
         BottomNavItem(stringResource(R.string.classes)) { Icon(Icons.Filled.School, null) },
     )
 
-    // LocalDate como String para evitar Saver/stateSaver
     val selectedDateStrState = rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
     val selectedDate: LocalDate = LocalDate.parse(selectedDateStrState.value)
 
-    // Estado del contenido inferior (3 vistas)
     val bodyState = rememberSaveable { mutableStateOf(AgendaBody.EVENTOS.name) }
     val currentBody = AgendaBody.valueOf(bodyState.value)
+
+    // 📡 Carga única de información de usuario al iniciar la pantalla
     LaunchedEffect(Unit) {
         val usuario = obtenerMisDatos()
         if (usuario != null) {
             nombreReal = usuario.nombre
         }
+    }
+
+    // 📡 LaunchedEffect reactivo: Se dispara CADA VEZ que selectedDate cambia en la UI
+    LaunchedEffect(selectedDate) {
+        isLoading = true
+        val fechaFormateada = formatearFechaEstricta(selectedDate)
+        Log.d("SUPABASE_AGENDA", "Disparando consulta para la fecha seleccionada: $fechaFormateada")
+
+        // Consume la nueva consulta asíncrona de dos pasos
+        diaCoincidenteActual = obtenerCalendarioEscolar(fechaFormateada)
+
+        Log.d("SUPABASE_AGENDA", "Resultado final: Encontrado?=${diaCoincidenteActual != null}, Actividad=${diaCoincidenteActual?.descripcionActividad}")
+        isLoading = false
     }
 
     AppScaffold(
@@ -87,7 +103,6 @@ fun AgendaScreen(navController: NavController) {
         onGenerateQrClick = { navController.navigate(Routes.GenerarQR) },
         onReadQrClick = { navController.navigate(Routes.ScanQR) },
         onConfigClick = { navController.navigate(Routes.Config) },
-
         onLogoutClick = {
             navController.navigate(Routes.Login) {
                 popUpTo(0)
@@ -97,16 +112,6 @@ fun AgendaScreen(navController: NavController) {
         onUserClick = { navController.navigate(Routes.Perfil) },
         navItems = navItems
     ) { padding ->
-
-        val primary = MaterialTheme.colorScheme.primary
-        val secondary = MaterialTheme.colorScheme.secondary
-        val tertiary = MaterialTheme.colorScheme.tertiary
-
-        val context = androidx.compose.ui.platform.LocalContext.current
-
-        val events = remember(context, primary, secondary, tertiary) {
-            demoAgendaEvents(context, primary, secondary, tertiary)
-        }
 
         val locale = remember { Locale("es", "MX") }
         val dayLabel = selectedDate.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
@@ -127,7 +132,7 @@ fun AgendaScreen(navController: NavController) {
                     .padding(horizontal = 18.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Header fijo
+                // Header fijo de la parte superior
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = stringResource(R.string.agenda),
@@ -141,31 +146,27 @@ fun AgendaScreen(navController: NavController) {
                     )
                 }
 
-                // Calendario SIEMPRE visible
+                // Calendario Desplegable ligero
                 CalDesplegable(
                     selectedDate = selectedDate,
+                    diasEscolares = emptyList(), // Se mantiene ligero por diseño bajo demanda
                     onDateSelected = { newDate ->
                         selectedDateStrState.value = newDate.toString()
                     }
                 )
 
-                // Solo cambia el cuerpo
+                // Renderizado y animación del cuerpo cambiante inferior
                 AnimatedContent(
                     targetState = currentBody,
                     transitionSpec = {
                         val duration = 260
-
                         when (targetState) {
                             AgendaBody.HORARIO -> {
-                                // EVENTOS -> HORARIO (horizontal)
                                 (slideInHorizontally(tween(duration)) { it } + fadeIn(tween(duration)))
                                     .togetherWith(slideOutHorizontally(tween(duration)) { -it } + fadeOut(tween(duration)))
                                     .using(SizeTransform(clip = false))
                             }
-
                             AgendaBody.NUEVO_EVENTO -> {
-                                // EVENTOS/HORARIO -> NUEVO_EVENTO (vertical + “a la izquierda”)
-                                // Entra desde abajo y con leve empuje a la izquierda
                                 (slideInVertically(tween(duration)) { it } +
                                         slideInHorizontally(tween(duration)) { -it / 6 } +
                                         fadeIn(tween(duration)))
@@ -176,11 +177,7 @@ fun AgendaScreen(navController: NavController) {
                                     )
                                     .using(SizeTransform(clip = false))
                             }
-
                             AgendaBody.EVENTOS -> {
-                                // Volver a EVENTOS:
-                                // si vienes de HORARIO -> regresa horizontal
-                                // si vienes de NUEVO_EVENTO -> regresa vertical inverso (sube)
                                 if (initialState == AgendaBody.NUEVO_EVENTO) {
                                     (slideInVertically(tween(duration)) { -it } + fadeIn(tween(duration)))
                                         .togetherWith(slideOutVertically(tween(duration)) { it } + fadeOut(tween(duration)))
@@ -194,15 +191,21 @@ fun AgendaScreen(navController: NavController) {
                         }
                     },
                     label = "AgendaBodyPager",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.weight(1f).fillMaxWidth()
                 ) { body ->
                     when (body) {
                         AgendaBody.EVENTOS -> {
-                            EventosPorDia(
-                                selectedDate = selectedDate,
-                                allEvents = events,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                            if (isLoading) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(color = guindaSuave)
+                                }
+                            } else {
+                                // 🚀 Renderiza la lista oficial pasando el estado obtenido en tiempo real
+                                EventosPorDia(diaCoincidente = diaCoincidenteActual)
+                            }
                         }
 
                         AgendaBody.HORARIO -> {
@@ -218,7 +221,7 @@ fun AgendaScreen(navController: NavController) {
                                 modifier = Modifier.fillMaxSize(),
                                 onCancel = { bodyState.value = AgendaBody.EVENTOS.name },
                                 onSaveSimulated = {
-                                    // aquí después conectamos a Supabase
+                                    bodyState.value = AgendaBody.EVENTOS.name
                                 }
                             )
                         }
@@ -226,7 +229,7 @@ fun AgendaScreen(navController: NavController) {
                 }
             }
 
-            // ✅ FAB Izquierdo: Nuevo Evento
+            // FAB Izquierdo: Nuevo Evento
             FloatingActionButton(
                 onClick = {
                     bodyState.value = if (currentBody == AgendaBody.NUEVO_EVENTO) {
@@ -237,22 +240,18 @@ fun AgendaScreen(navController: NavController) {
                 },
                 containerColor = guindaSuave,
                 contentColor = Color.White,
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 8.dp,
-                    pressedElevation = 12.dp
-                ),
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp),
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(start = 18.dp, bottom = 18.dp)
             ) {
-                if (currentBody == AgendaBody.NUEVO_EVENTO) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back_to_events))
-                } else {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.new_event))
-                }
+                Icon(
+                    imageVector = if (currentBody == AgendaBody.NUEVO_EVENTO) Icons.Filled.ArrowBack else Icons.Filled.Add,
+                    contentDescription = null
+                )
             }
 
-            // ✅ FAB Derecho: Horario
+            // FAB Derecho: Horario
             FloatingActionButton(
                 onClick = {
                     bodyState.value = if (currentBody == AgendaBody.HORARIO) {
@@ -263,19 +262,15 @@ fun AgendaScreen(navController: NavController) {
                 },
                 containerColor = guindaSuave,
                 contentColor = Color.White,
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 8.dp,
-                    pressedElevation = 12.dp
-                ),
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 18.dp, bottom = 18.dp)
             ) {
-                if (currentBody == AgendaBody.HORARIO) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back_to_events))
-                } else {
-                    Icon(Icons.Filled.DateRange, contentDescription = stringResource(R.string.view_schedule))
-                }
+                Icon(
+                    imageVector = if (currentBody == AgendaBody.HORARIO) Icons.Filled.ArrowBack else Icons.Filled.DateRange,
+                    contentDescription = null
+                )
             }
         }
     }
