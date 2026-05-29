@@ -16,17 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.app_sisaep.R
-import com.example.app_sisaep.model.dto.UsuarioDto
-import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.viewModel.AuthApp
 import com.example.app_sisaep.viewModel.QrGenerate
 import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
-import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonPrimitive
 
 @Composable
 fun GenerarQrScreen(navController: NavController) {

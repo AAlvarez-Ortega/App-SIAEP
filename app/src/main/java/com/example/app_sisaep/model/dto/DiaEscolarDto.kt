@@ -1,20 +1,14 @@
 package com.example.app_sisaep.model.dto
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class DiaEscolarDto(
-    val id_escfecha: String,
-    val id_tipodias: Int
+    val id_escfecha: String,             // Recibe el texto directo de la función
+    val id_tipodias: Int,                // Recibe el número directo de la función
+    val descripcion_actividad: String    // Recibe el texto de la descripción ya unido desde SQL
 ) {
-    // 🧠 Propiedad dinámica que inyectaremos manualmente en la función de abajo
-    var descripcionActividad: String = "Actividad Escolar"
+    // Propiedad calculada de respaldo para mantener compatibilidad total con tu UI actual
+    val descripcionActividad: String
+        get() = descripcion_actividad
 }
-
-@Serializable
-data class CatalogoTipoDiaDto(
-    val id_tipodias: Int,
-
-    val descripcion: String
-)

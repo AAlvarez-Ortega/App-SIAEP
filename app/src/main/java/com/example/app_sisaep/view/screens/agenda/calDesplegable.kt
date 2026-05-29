@@ -8,9 +8,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,12 +30,16 @@ import java.util.Locale
 import androidx.compose.ui.res.stringResource
 import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.DiaEscolarDto
+import java.time.format.DateTimeFormatter
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 
 @Composable
 fun CalDesplegable(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit,
-    diasEscolares: List<DiaEscolarDto>, // Se mantiene por firma estructural
+    diaEscolarActual: DiaEscolarDto?, // 🚀 OPTIMIZACIÓN: Cambiado de List a un objeto Único/Nulo
     modifier: Modifier = Modifier
 ) {
     val locale = remember { Locale("es", "MX") }
@@ -47,7 +48,7 @@ fun CalDesplegable(
     val shownMonthStrState = rememberSaveable {
         mutableStateOf(YearMonth.from(selectedDate).toString())
     }
-    val shownMonth = YearMonth.parse(shownMonthStrState.value)
+    val shownMonth = remember(shownMonthStrState.value) { YearMonth.parse(shownMonthStrState.value) }
 
     LaunchedEffect(selectedDate) {
         val ym = YearMonth.from(selectedDate).toString()
@@ -81,7 +82,13 @@ fun CalDesplegable(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             if (!expandedState.value) {
-                WeekStrip(selected = selectedDate, onSelect = onDateSelected, locale = locale)
+                // Pasamos el día actual para pintar indicadores si hay agenda
+                WeekStrip(
+                    selected = selectedDate,
+                    onSelect = onDateSelected,
+                    locale = locale,
+                    diaEscolarActual = diaEscolarActual
+                )
             }
 
             CalendarHandleDrag(
@@ -102,7 +109,10 @@ fun CalDesplegable(
                         .fillMaxWidth()
                         .padding(top = 8.dp)
                         .heightIn(min = 280.dp)
-                        .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { expandedState.value = false }
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { expandedState.value = false }
                 )
 
                 Surface(
@@ -132,7 +142,14 @@ private fun MonthGrid(shownMonth: YearMonth, selectedDate: LocalDate, locale: Lo
     val grid = remember(shownMonth) { buildMonthGrid(shownMonth) }
 
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        daysOfWeek.forEach { dow -> Text(text = dow.getDisplayName(TextStyle.NARROW, locale).uppercase(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.width(40.dp)) }
+        daysOfWeek.forEach { dow ->
+            Text(
+                text = dow.getDisplayName(TextStyle.NARROW, locale).uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.width(40.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -141,8 +158,20 @@ private fun MonthGrid(shownMonth: YearMonth, selectedDate: LocalDate, locale: Lo
                 week.forEach { day ->
                     val isSelected = day == selectedDate
                     val isInMonth = YearMonth.from(day) == shownMonth
-                    Surface(modifier = Modifier.size(40.dp), shape = RoundedCornerShape(12.dp), color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface, onClick = { onDateSelected(day) }) {
-                        Box(contentAlignment = Alignment.Center) { Text(text = day.dayOfMonth.toString(), style = MaterialTheme.typography.labelLarge, color = if (isSelected) MaterialTheme.colorScheme.onPrimary else if (!isInMonth) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f) else MaterialTheme.colorScheme.onSurface) }
+
+                    Surface(
+                        modifier = Modifier.size(40.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                        onClick = { onDateSelected(day) }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = day.dayOfMonth.toString(),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else if (!isInMonth) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f) else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             }
@@ -151,18 +180,47 @@ private fun MonthGrid(shownMonth: YearMonth, selectedDate: LocalDate, locale: Lo
 }
 
 @Composable
-private fun WeekStrip(selected: LocalDate, onSelect: (LocalDate) -> Unit, locale: Locale) {
-    val start = selected.minusDays(((selected.dayOfWeek.value % 7).toLong()))
-    val days = remember(selected) { (0..6).map { start.plusDays(it.toLong()) } }
+private fun WeekStrip(
+    selected: LocalDate,
+    onSelect: (LocalDate) -> Unit,
+    locale: Locale,
+    diaEscolarActual: DiaEscolarDto? // 🚀 Recibido aquí
+) {
+    val start = remember(selected) { selected.minusDays(((selected.dayOfWeek.value % 7).toLong())) }
+    val days = remember(start) { (0..6).map { start.plusDays(it.toLong()) } }
+
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         days.forEach { d ->
             val isSelected = d == selected
             val dayLetter = d.dayOfWeek.getDisplayName(TextStyle.NARROW, locale).uppercase()
-            Surface(modifier = Modifier.size(width = 44.dp, height = 56.dp), shape = RoundedCornerShape(14.dp), color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface, onClick = { onSelect(d) }) {
-                Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+
+            // Verificamos si este día de la tira semanal coincide con el que tiene eventos cargados
+            val tieneEvento = diaEscolarActual != null && d == selected
+
+            Surface(
+                modifier = Modifier.size(width = 44.dp, height = 56.dp),
+                shape = RoundedCornerShape(14.dp),
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                onClick = { onSelect(d) }
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(vertical = 4.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(text = dayLetter, style = MaterialTheme.typography.labelMedium, color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(4.dp))
                     Text(text = d.dayOfMonth.toString(), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface)
+
+                    // 🚀 INDICADOR VISUAL: Pequeño punto si el día seleccionado tiene contenido en Supabase
+                    if (tieneEvento) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 2.dp)
+                                .size(4.dp)
+                                .clip(RoundedCornerShape(99.dp))
+                                .background(if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary)
+                        )
+                    }
                 }
             }
         }
@@ -178,7 +236,9 @@ private fun buildMonthGrid(ym: YearMonth): List<LocalDate> {
 
 @Composable
 private fun MonthHeader(shownMonth: YearMonth, locale: Locale, onPrev: () -> Unit, onNext: () -> Unit) {
-    val monthName = shownMonth.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() }
+    val monthName = remember(shownMonth) {
+        shownMonth.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() }
+    }
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onPrev) { Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.previous_month)) }
         Text(text = "$monthName ${shownMonth.year}", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
@@ -188,12 +248,19 @@ private fun MonthHeader(shownMonth: YearMonth, locale: Locale, onPrev: () -> Uni
 
 @Composable
 private fun CalendarHandleDrag(expanded: Boolean, onDragDelta: (Float) -> Unit, onDragEnd: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().height(30.dp).draggable(orientation = Orientation.Vertical, state = rememberDraggableState { onDragDelta(it) }, onDragStopped = { onDragEnd() }).clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onDragDelta(if (expanded) -100f else 100f); onDragEnd() }, horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(30.dp)
+            .draggable(orientation = Orientation.Vertical, state = rememberDraggableState { onDragDelta(it) }, onDragStopped = { onDragEnd() })
+            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onDragDelta(if (expanded) -100f else 100f); onDragEnd() },
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Box(modifier = Modifier.width(if (expanded) 62.dp else 52.dp).height(6.dp).clip(RoundedCornerShape(999.dp)).background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (expanded) 0.22f else 0.14f)))
     }
 }
 
-// Se encuentra en CalDesplegable.kt
 fun formatearFechaEstricta(date: LocalDate): String {
-    return String.format(Locale.US, "%04d-%02d-%02d", date.year, date.monthValue, date.dayOfMonth)
+    return date.format(DateTimeFormatter.ISO_LOCAL_DATE)
 }

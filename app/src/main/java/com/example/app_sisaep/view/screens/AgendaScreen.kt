@@ -41,9 +41,11 @@ import java.time.format.TextStyle
 import java.util.Locale
 import androidx.compose.ui.res.stringResource
 import com.example.app_sisaep.model.dto.DiaEscolarDto
+import com.example.app_sisaep.model.dto.EventoIdUsuarioDto // 🚀 Importación del nuevo DTO de lectura
 import com.example.app_sisaep.view.screens.agenda.formatearFechaEstricta
 import com.example.app_sisaep.viewModel.consultaas.obtenerCalendarioEscolar
 import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
+import com.example.app_sisaep.viewModel.consultaas.selectEventosDeUsuario // 🚀 Importación de la consulta descendente
 
 private enum class AgendaBody { EVENTOS, HORARIO, NUEVO_EVENTO }
 
@@ -51,19 +53,23 @@ private enum class AgendaBody { EVENTOS, HORARIO, NUEVO_EVENTO }
 fun AgendaScreen(navController: NavController) {
     var nombreReal by remember { mutableStateOf("") }
 
-    // 🗄️ Estado para guardar únicamente la actividad de la fecha seleccionada
+    // 🗄️ Estados para guardar la actividad oficial y los eventos del usuario en paralelo
     var diaCoincidenteActual by remember { mutableStateOf<DiaEscolarDto?>(null) }
+    var listaEventosPersonales by remember { mutableStateOf<List<EventoIdUsuarioDto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
 
+    // 🔄 Bandera extra para forzar un refresco cuando se inserte un registro nuevo con éxito
+    var refreshTrigger by remember { mutableStateOf(0) }
+
     val navItems = listOf(
-        BottomNavItem(stringResource(R.string.home)) { Icon(Icons.Filled.Home, null) },
-        BottomNavItem(stringResource(R.string.calendar)) { Icon(Icons.Filled.CalendarMonth, null) },
-        BottomNavItem(stringResource(R.string.agenda)) { Icon(Icons.Filled.Schedule, null) },
-        BottomNavItem(stringResource(R.string.classes)) { Icon(Icons.Filled.School, null) },
+        BottomNavItem(stringResource(R.string.home)) { androidx.compose.material3.Icon(Icons.Filled.Home, null) },
+        BottomNavItem(stringResource(R.string.calendar)) { androidx.compose.material3.Icon(Icons.Filled.CalendarMonth, null) },
+        BottomNavItem(stringResource(R.string.agenda)) { androidx.compose.material3.Icon(Icons.Filled.Schedule, null) },
+        BottomNavItem(stringResource(R.string.classes)) { androidx.compose.material3.Icon(Icons.Filled.School, null) },
     )
 
     val selectedDateStrState = rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
-    val selectedDate: LocalDate = LocalDate.parse(selectedDateStrState.value)
+    val selectedDate: LocalDate = remember(selectedDateStrState.value) { LocalDate.parse(selectedDateStrState.value) }
 
     val bodyState = rememberSaveable { mutableStateOf(AgendaBody.EVENTOS.name) }
     val currentBody = AgendaBody.valueOf(bodyState.value)
@@ -76,16 +82,17 @@ fun AgendaScreen(navController: NavController) {
         }
     }
 
-    // 📡 LaunchedEffect reactivo: Se dispara CADA VEZ que selectedDate cambia en la UI
-    LaunchedEffect(selectedDate) {
+    // 📡 LaunchedEffect reactivo: Se dispara al cambiar la fecha O al activar el trigger de guardado exitoso
+    LaunchedEffect(selectedDate, refreshTrigger) {
         isLoading = true
         val fechaFormateada = formatearFechaEstricta(selectedDate)
-        Log.d("SUPABASE_AGENDA", "Disparando consulta para la fecha seleccionada: $fechaFormateada")
+        Log.d("SUPABASE_AGENDA", "Disparando consulta unificada para la fecha: $fechaFormateada")
 
-        // Consume la nueva consulta asíncrona de dos pasos
+        // 🚀 Carga paralela y asíncrona optimizada
         diaCoincidenteActual = obtenerCalendarioEscolar(fechaFormateada)
+        listaEventosPersonales = selectEventosDeUsuario(fechaFormateada)
 
-        Log.d("SUPABASE_AGENDA", "Resultado final: Encontrado?=${diaCoincidenteActual != null}, Actividad=${diaCoincidenteActual?.descripcionActividad}")
+        Log.d("SUPABASE_AGENDA", "Resultado final -> Oficial: ${diaCoincidenteActual != null}, Personales: ${listaEventosPersonales.size}")
         isLoading = false
     }
 
@@ -114,10 +121,12 @@ fun AgendaScreen(navController: NavController) {
     ) { padding ->
 
         val locale = remember { Locale("es", "MX") }
-        val dayLabel = selectedDate.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
-            .replaceFirstChar { it.uppercase() }
-        val monthLabel = selectedDate.month.getDisplayName(TextStyle.FULL, locale)
-            .replaceFirstChar { it.uppercase() }
+        val dayLabel = remember(selectedDate) {
+            selectedDate.dayOfWeek.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() }
+        }
+        val monthLabel = remember(selectedDate) {
+            selectedDate.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() }
+        }
 
         val guindaSuave = Color(0xFF8A1F4D)
 
@@ -146,10 +155,10 @@ fun AgendaScreen(navController: NavController) {
                     )
                 }
 
-                // Calendario Desplegable ligero
+                // Calendario Desplegable ligero vinculado al estado de la base de datos
                 CalDesplegable(
                     selectedDate = selectedDate,
-                    diasEscolares = emptyList(), // Se mantiene ligero por diseño bajo demanda
+                    diaEscolarActual = diaCoincidenteActual,
                     onDateSelected = { newDate ->
                         selectedDateStrState.value = newDate.toString()
                     }
@@ -203,8 +212,11 @@ fun AgendaScreen(navController: NavController) {
                                     CircularProgressIndicator(color = guindaSuave)
                                 }
                             } else {
-                                // 🚀 Renderiza la lista oficial pasando el estado obtenido en tiempo real
-                                EventosPorDia(diaCoincidente = diaCoincidenteActual)
+                                // 🚀 MODIFICADO: Ahora pasamos tanto el día oficial como los eventos personales del usuario
+                                EventosPorDia(
+                                    diaCoincidente = diaCoincidenteActual,
+                                    eventosPersonales = listaEventosPersonales
+                                )
                             }
                         }
 
@@ -215,13 +227,15 @@ fun AgendaScreen(navController: NavController) {
                             )
                         }
 
+                        // Conectamos los nuevos parámetros reales de inserción asíncrona
                         AgendaBody.NUEVO_EVENTO -> {
                             NuevoEventoContent(
                                 selectedDate = selectedDate,
                                 modifier = Modifier.fillMaxSize(),
                                 onCancel = { bodyState.value = AgendaBody.EVENTOS.name },
-                                onSaveSimulated = {
+                                onSaveSuccess = {
                                     bodyState.value = AgendaBody.EVENTOS.name
+                                    refreshTrigger++ // Forzamos el recargado al retornar a la lista
                                 }
                             )
                         }

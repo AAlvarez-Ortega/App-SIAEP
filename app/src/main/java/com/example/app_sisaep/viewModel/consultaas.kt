@@ -1,12 +1,13 @@
 package com.example.app_sisaep.viewModel
 
-
 import android.util.Log
 import com.example.app_sisaep.model.dto.AvisoGlobal
 import com.example.app_sisaep.model.dto.ChatPreviewDto
 import com.example.app_sisaep.model.dto.ConversacionDto
 import com.example.app_sisaep.model.dto.DiaEscolarDto
 import com.example.app_sisaep.model.dto.EscuelaDto
+import com.example.app_sisaep.model.dto.EventoIdUsuarioDto
+import com.example.app_sisaep.model.dto.EventoInsertDto
 import com.example.app_sisaep.model.dto.MensajeDto
 import com.example.app_sisaep.model.dto.SolicitudIdDto
 import com.example.app_sisaep.model.dto.SolicitudInsertDto
@@ -18,7 +19,11 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
-import com.example.app_sisaep.model.dto.CatalogoTipoDiaDto
+import io.github.jan.supabase.postgrest.rpc
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 
 object consultaas {
@@ -124,6 +129,7 @@ object consultaas {
             emptyList()
         }
     }
+
     /**
      * Busca una conversación existente entre dos usuarios o crea una nueva.
      */
@@ -190,7 +196,8 @@ object consultaas {
      */
     suspend fun obtenerMisChatsActivosOrdenados(): List<ChatPreviewDto> {
         return try {
-            val miId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id ?: return emptyList()
+            val miId =
+                SupabaseConnectionApp.client.auth.currentUserOrNull()?.id ?: return emptyList()
 
             // 1. Traer conversaciones sin filtros pesados primero para evitar el UnknownRestException
             val todasLasConvs = SupabaseConnectionApp.client
@@ -213,22 +220,28 @@ object consultaas {
                         order("creado_en", order = Order.DESCENDING)
                         limit(1)
                     }.decodeSingleOrNull<MensajeDto>()
-                } catch (_: Exception) { null }
+                } catch (_: Exception) {
+                    null
+                }
 
                 // Traer datos del otro usuario
                 val usuario = try {
                     SupabaseConnectionApp.client.from("sic_usuarios").select {
                         filter { eq("id_uduario", otroId) }
                     }.decodeSingleOrNull<UsuarioDto>()
-                } catch (_: Exception) { null }
+                } catch (_: Exception) {
+                    null
+                }
 
                 if (usuario != null) {
-                    listaPreview.add(ChatPreviewDto(
-                        usuarioId = usuario.id_usuario,
-                        nombreCompleto = "${usuario.nombre} ${usuario.apellido_paterno}",
-                        ultimoMensaje = ultimoMsj?.contenido ?: "Sin mensajes aún",
-                        fechaUltimoMensaje = conv.updated_at ?: conv.creado_en ?: ""
-                    ))
+                    listaPreview.add(
+                        ChatPreviewDto(
+                            usuarioId = usuario.id_usuario,
+                            nombreCompleto = "${usuario.nombre} ${usuario.apellido_paterno}",
+                            ultimoMensaje = ultimoMsj?.contenido ?: "Sin mensajes aún",
+                            fechaUltimoMensaje = conv.updated_at ?: conv.creado_en ?: ""
+                        )
+                    )
                 }
             }
             listaPreview
@@ -239,43 +252,77 @@ object consultaas {
     }
 
 
-    suspend fun obtenerCalendarioEscolar(fechaFiltro: String): DiaEscolarDto? {
-        return try {
-            // Paso 1: Obtenemos el registro plano de la fecha de forma segura como una lista
-            val diasResultados = SupabaseConnectionApp.client.postgrest["sse_diaescolar"]
-                .select() {
-                    filter {
-                        eq("id_escfecha", fechaFiltro)
-                    }
-                }
-                .decodeList<DiaEscolarDto>()
-
-            val diaEncontrado = diasResultados.firstOrNull()
-
-            // Paso 2: Si la fecha existe en el calendario escolar, traemos su descripción del catálogo
-            if (diaEncontrado != null) {
-                val actividadCatalogo = SupabaseConnectionApp.client.postgrest["sse_ctipodias"]
-                    .select() {
-                        filter {
-                            eq("id_tipodias", diaEncontrado.id_tipodias)
-                        }
-                    }
-                    .decodeList<CatalogoTipoDiaDto>()
-                    .firstOrNull()
-
-                // Sincronizamos la descripción en la propiedad calculada de tu DTO
-                diaEncontrado.descripcionActividad = actividadCatalogo?.descripcion ?: "Actividad Escolar"
-
-                Log.d("SUPABASE_AGENDA", "Match exitoso en Android: ${diaEncontrado.id_escfecha} -> ${diaEncontrado.descripcionActividad}")
-                return diaEncontrado
+    suspend fun obtenerCalendarioEscolar(fechaFiltro: String): DiaEscolarDto? = withContext(Dispatchers.IO) {
+        try {
+            // Empaquetamos el parámetro de fecha estricta
+            val parametrosQuery = buildJsonObject {
+                put("fecha_buscada", fechaFiltro)
             }
 
-            null
+            // Ejecutamos el RPC mapeando directamente al objeto único o nulo
+            val resultado = SupabaseConnectionApp.client.postgrest
+                .rpc("consultar_fecha_agenda_v2", parametrosQuery)
+                .decodeSingleOrNull<DiaEscolarDto>() // Optimización: Evita deserializar listas innecesarias
+
+            Log.d(
+                "SUPABASE_AGENDA",
+                "Consulta exitosa para $fechaFiltro. Registro encontrado: ${resultado != null}"
+            )
+
+            resultado
         } catch (e: Exception) {
-            Log.e("SUPABASE_AGENDA", "Error al procesar calendario en Android: ${e.message}")
-            e.printStackTrace()
+            // Evitamos tragar la cancelación de la Coroutine
+            if (e is kotlinx.coroutines.CancellationException) throw e
+
+            Log.e("SUPABASE_AGENDA", "Error al consultar el calendario para $fechaFiltro: ${e.localizedMessage}", e)
             null
         }
     }
+
+    suspend fun insertarEventoUsuario(evento: EventoInsertDto): Boolean = withContext(Dispatchers.IO) {
+        try {
+            SupabaseConnectionApp.client.postgrest
+                .from("sic_eventos")
+                .insert(evento)
+
+            Log.d("SUPABASE_INSERT", "Evento guardado exitosamente en el servidor: ${evento.titulo}")
+            true
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Log.e("SUPABASE_INSERT", "Error crítico al insertar el evento: ${e.localizedMessage}", e)
+            false
+        }
+    }
+
+    suspend fun selectEventosDeUsuario(fechaFiltro: String): List<EventoIdUsuarioDto> = withContext(Dispatchers.IO) {
+        try {
+            // 🔐 Obtenemos el ID del alumno logeado
+            val usuarioId = SupabaseConnectionApp.client.auth.currentUserOrNull()?.id ?: return@withContext emptyList()
+
+            // Hacemos el SELECT filtrando por el ID de usuario y la fecha de inicio
+            val resultados = SupabaseConnectionApp.client.postgrest
+                .from("sic_eventos")
+                .select {
+                    filter {
+                        eq("id_usuario", usuarioId)
+                        eq("fecha_inicio", fechaFiltro)
+                    }
+                    // 🚀 ORDEN DESCENDENTE por hora_inicio
+                    order(column = "hora_inicio", order = Order.DESCENDING)
+                }
+                .decodeList<EventoIdUsuarioDto>()
+
+            Log.d("SUPABASE_SELECT", "Eventos personales traídos para $fechaFiltro: ${resultados.size}")
+            resultados
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Log.e("SUPABASE_SELECT", "Error al traer eventos personales: ${e.localizedMessage}", e)
+            emptyList()
+        }
+    }
+
+
+
+
 
 }
