@@ -8,6 +8,7 @@ import com.example.app_sisaep.model.dto.DiaEscolarDto
 import com.example.app_sisaep.model.dto.EscuelaDto
 import com.example.app_sisaep.model.dto.EventoIdUsuarioDto
 import com.example.app_sisaep.model.dto.EventoInsertDto
+import com.example.app_sisaep.model.dto.HoraClaseDto
 import com.example.app_sisaep.model.dto.MensajeDto
 import com.example.app_sisaep.model.dto.SolicitudIdDto
 import com.example.app_sisaep.model.dto.SolicitudInsertDto
@@ -320,6 +321,45 @@ object consultaas {
             emptyList()
         }
     }
+
+    suspend fun obtenerHorarioAcademico(): List<HoraClaseDto> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val usuario = obtenerMisDatos() ?: run {
+                    Log.e("SUPABASE_REAL", "No se encontraron datos del usuario en sesión.")
+                    return@withContext emptyList()
+                }
+
+                val uuidUsuarioLogueado = usuario.id_usuario ?: run {
+                    Log.e("SUPABASE_REAL", "El usuario no cuenta con un id_usuario válido.")
+                    return@withContext emptyList()
+                }
+
+                val esProfesor = usuario.id_tipo_usuario == 2
+                val clientPostgrest = SupabaseConnectionApp.client.postgrest
+
+                if (esProfesor) {
+                    Log.d("SUPABASE_REAL", "Consultando vista de horarios para Profesor: $uuidUsuarioLogueado")
+                    return@withContext clientPostgrest
+                        .from("v_horario_completo")
+                        .select {
+                            filter { eq("id_profesor", uuidUsuarioLogueado) }
+                        }.decodeList<HoraClaseDto>()
+                } else {
+                    Log.d("SUPABASE_REAL", "Consultando vista de horarios para Alumno: $uuidUsuarioLogueado")
+                    return@withContext clientPostgrest
+                        .from("v_horario_completo")
+                        .select {
+                            filter { eq("id_alumno", uuidUsuarioLogueado) }
+                        }.decodeList<HoraClaseDto>()
+                }
+            } catch (e: Exception) {
+                Log.e("SUPABASE_REAL", "Error crítico en v_horario_completo: ${e.localizedMessage}")
+                emptyList()
+            }
+        }
+    }
+
 
 
 

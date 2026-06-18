@@ -41,11 +41,13 @@ import java.time.format.TextStyle
 import java.util.Locale
 import androidx.compose.ui.res.stringResource
 import com.example.app_sisaep.model.dto.DiaEscolarDto
-import com.example.app_sisaep.model.dto.EventoIdUsuarioDto // 🚀 Importación del nuevo DTO de lectura
+import com.example.app_sisaep.model.dto.EventoIdUsuarioDto
+import com.example.app_sisaep.model.dto.HoraClaseDto // 🚀 Importamos el DTO del horario unificado
 import com.example.app_sisaep.view.screens.agenda.formatearFechaEstricta
 import com.example.app_sisaep.viewModel.consultaas.obtenerCalendarioEscolar
 import com.example.app_sisaep.viewModel.consultaas.obtenerMisDatos
-import com.example.app_sisaep.viewModel.consultaas.selectEventosDeUsuario // 🚀 Importación de la consulta descendente
+import com.example.app_sisaep.viewModel.consultaas.selectEventosDeUsuario
+import com.example.app_sisaep.viewModel.consultaas.obtenerHorarioAcademico // 🚀 Importamos la consulta que va a la Vista SQL
 
 private enum class AgendaBody { EVENTOS, HORARIO, NUEVO_EVENTO }
 
@@ -53,9 +55,10 @@ private enum class AgendaBody { EVENTOS, HORARIO, NUEVO_EVENTO }
 fun AgendaScreen(navController: NavController) {
     var nombreReal by remember { mutableStateOf("") }
 
-    // 🗄️ Estados para guardar la actividad oficial y los eventos del usuario en paralelo
+    // 🗄️ Estados para guardar la actividad oficial, eventos personales y el horario académico en paralelo
     var diaCoincidenteActual by remember { mutableStateOf<DiaEscolarDto?>(null) }
     var listaEventosPersonales by remember { mutableStateOf<List<EventoIdUsuarioDto>>(emptyList()) }
+    var listaHorarioAcademico by remember { mutableStateOf<List<HoraClaseDto>>(emptyList()) } // 🚀 Estado para el horario completo
     var isLoading by remember { mutableStateOf(false) }
 
     // 🔄 Bandera extra para forzar un refresco cuando se inserte un registro nuevo con éxito
@@ -88,11 +91,12 @@ fun AgendaScreen(navController: NavController) {
         val fechaFormateada = formatearFechaEstricta(selectedDate)
         Log.d("SUPABASE_AGENDA", "Disparando consulta unificada para la fecha: $fechaFormateada")
 
-        // 🚀 Carga paralela y asíncrona optimizada
+        // 🚀 Carga paralela y asíncrona optimizada del calendario, eventos y materias de la sesión
         diaCoincidenteActual = obtenerCalendarioEscolar(fechaFormateada)
         listaEventosPersonales = selectEventosDeUsuario(fechaFormateada)
+        listaHorarioAcademico = obtenerHorarioAcademico() // 🚀 Bajamos toda la tira académica de la vista SQL de Supabase
 
-        Log.d("SUPABASE_AGENDA", "Resultado final -> Oficial: ${diaCoincidenteActual != null}, Personales: ${listaEventosPersonales.size}")
+        Log.d("SUPABASE_AGENDA", "Resultado unificado -> Oficial: ${diaCoincidenteActual != null}, Personales: ${listaEventosPersonales.size}, Materias Totales: ${listaHorarioAcademico.size}")
         isLoading = false
     }
 
@@ -126,6 +130,14 @@ fun AgendaScreen(navController: NavController) {
         }
         val monthLabel = remember(selectedDate) {
             selectedDate.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() }
+        }
+
+        // 🔥 FILTRADO EN MEMORIA: Filtramos las materias que corresponden única y exclusivamente al día seleccionado
+        // Ejemplo: Si dayLabel es "Lunes", busca en la lista de la vista SQL los registros que tengan "Lunes" o "LUNES"
+        val materiasDelDiaSeleccionado = remember(listaHorarioAcademico, dayLabel) {
+            listaHorarioAcademico.filter {
+                it.nombre_dia?.trim()?.uppercase() == dayLabel.trim().uppercase()
+            }.sortedBy { it.id_horas } // Ordenadas secuencialmente por su hora/bloque de inicio
         }
 
         val guindaSuave = Color(0xFF8A1F4D)
@@ -212,10 +224,12 @@ fun AgendaScreen(navController: NavController) {
                                     CircularProgressIndicator(color = guindaSuave)
                                 }
                             } else {
-                                // 🚀 MODIFICADO: Ahora pasamos tanto el día oficial como los eventos personales del usuario
+                                // 🚀 MODIFICADO COMPLETAMENTE: Ahora le inyectamos a tu componente de eventos
+                                // las materias correspondientes a este día específico para que las pinte en forma de lista o renglones.
                                 EventosPorDia(
                                     diaCoincidente = diaCoincidenteActual,
-                                    eventosPersonales = listaEventosPersonales
+                                    eventosPersonales = listaEventosPersonales,
+                                    materiasDelDia = materiasDelDiaSeleccionado // 🚀 Parámetro nuevo para renderizar tu tira diaria escolar
                                 )
                             }
                         }
