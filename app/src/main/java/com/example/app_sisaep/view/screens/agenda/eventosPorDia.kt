@@ -18,259 +18,266 @@ import com.example.app_sisaep.model.dto.DiaEscolarDto
 import com.example.app_sisaep.model.dto.EventoIdUsuarioDto
 import com.example.app_sisaep.model.dto.HoraClaseDto
 
-@Composable
-fun EventosPorDia(
-    diaCoincidente: DiaEscolarDto?,              // 📥 Día oficial de la escuela
-    eventosPersonales: List<EventoIdUsuarioDto>, // 🚀 Lista de eventos personales
-    materiasDelDia: List<HoraClaseDto>,          // 🚀 Materias filtradas del día seleccionado
-    modifier: Modifier = Modifier
-) {
-    val guindaInstitucional = Color(0xFF8A1F4D)
+// ── Constantes de color reutilizables ──────────────────────────────────────────
+private val GuindaInstitucional = Color(0xFF8A1F4D)
+private val AzulAcademico       = Color(0xFF3F51B5)
 
-    // 🔥 ALGORITMO DE FUSIÓN: Agrupamos las horas continuas de la misma asignatura en este día
-    val materiasFusionadas = remember(materiasDelDia) {
-        val listaResultado = mutableListOf<HoraClaseDto>()
+// ── Mapa de colores por tipo de día (sin recrear en cada recomposición) ────────
+private fun colorParaTipoDia(idTipo: Int): Color = when (idTipo) {
+    1, 10    -> Color(0xFF4CAF50)  // Inscripción (Verde)
+    2, 3     -> Color(0xFF2196F3)  // Inicio Periodo (Azul)
+    4        -> Color(0xFFF44336)  // Fin Periodo (Rojo)
+    13       -> Color(0xFFFFEB3B)  // Vacaciones (Amarillo)
+    14, 15   -> Color(0xFF9C27B0)  // Asuetos (Morado)
+    else     -> GuindaInstitucional
+}
 
-        // Agrupamos únicamente por el id de la asignatura (ya que todas pertenecen al mismo día seleccionado)
-        val agrupadosPorMateria = materiasDelDia.groupBy { it.id_asignatura }
-
-        agrupadosPorMateria.forEach { (_, subListaMateria) ->
-            // Ordenamos por el bloque para asegurar orden cronológico continuo
-            val subListaOrdenada = subListaMateria.sortedBy { it.id_horas }
-            if (subListaOrdenada.isNotEmpty()) {
-                val moldeBase = subListaOrdenada.first().copy()
-
-                // Extraemos el inicio del primer bloque y el fin del último bloque consecutivo
-                moldeBase.hora_inicio_fusionada = subListaOrdenada.first().ini_horas
-                moldeBase.hora_fin_fusionada = subListaOrdenada.last().fin_horas
-
-                listaResultado.add(moldeBase)
+// ── Algoritmo de fusión extraído como función pura ─────────────────────────────
+private fun fusionarMaterias(materiasDelDia: List<HoraClaseDto>): List<HoraClaseDto> =
+    materiasDelDia
+        .groupBy { it.id_asignatura }
+        .mapNotNull { (_, subLista) ->
+            val ordenada = subLista.sortedBy { it.id_horas }
+            ordenada.firstOrNull()?.copy()?.also { base ->
+                base.hora_inicio_fusionada = ordenada.first().ini_horas
+                base.hora_fin_fusionada    = ordenada.last().fin_horas
             }
         }
-        // Las ordenamos finalmente por su horario de inicio para que aparezcan en orden secuencial en el feed
-        listaResultado.sortedBy { it.id_horas }
-    }
+        .sortedBy { it.id_horas }
+
+// ──────────────────────────────────────────────────────────────────────────────
+@Composable
+fun EventosPorDia(
+    diaCoincidente: DiaEscolarDto?,
+    eventosPersonales: List<EventoIdUsuarioDto>,
+    materiasDelDia: List<HoraClaseDto>,
+    modifier: Modifier = Modifier
+) {
+    val materiasFusionadas = remember(materiasDelDia) { fusionarMaterias(materiasDelDia) }
+
+    val hayContenido = diaCoincidente != null ||
+            eventosPersonales.isNotEmpty() ||
+            materiasFusionadas.isNotEmpty()
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 80.dp) // Espacio libre para los FAB inferiores
+        contentPadding = PaddingValues(bottom = 80.dp)
     ) {
 
-        // --- 1. RENDERIZADO DEL CALENDARIO OFICIAL (Si existe) ---
+        // 1 ── Día oficial del calendario escolar ──────────────────────────────
         if (diaCoincidente != null) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val colorIndicador = when (diaCoincidente.id_tipodias) {
-                            1, 10 -> Color(0xFF4CAF50)  // Inscripción (Verde)
-                            2, 3  -> Color(0xFF2196F3)  // Inicio Periodo (Azul)
-                            4     -> Color(0xFFF44336)  // Fin Periodo (Rojo)
-                            13    -> Color(0xFFFFEB3B)  // Vacaciones (Amarillo)
-                            14, 15 -> Color(0xFF9C27B0) // Asuetos (Morado)
-                            else  -> guindaInstitucional
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .width(6.dp)
-                                .height(54.dp)
-                                .background(colorIndicador, RoundedCornerShape(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = diaCoincidente.descripcionActividad,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = "Calendario Oficial • Actividad Tipo ${diaCoincidente.id_tipodias}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
-                        }
-                    }
-                }
+            item(key = "dia_oficial") {
+                CardDiaOficial(dia = diaCoincidente)
             }
         }
 
-        // --- 2. RENDERIZADO DE LAS MATERIAS ACADÉMICAS FUSIONADAS ---
+        // 2 ── Materias académicas fusionadas ──────────────────────────────────
         if (materiasFusionadas.isNotEmpty()) {
-            item {
-                Text(
-                    text = "Clases de Hoy",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = guindaInstitucional,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 6.dp, top = 4.dp)
-                )
+            item(key = "header_clases") {
+                SeccionHeader(texto = "Clases de Hoy")
             }
-
             items(materiasFusionadas, key = { "${it.id_asignatura}_${it.id_horas}" }) { clase ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Color distintivo para el apartado académico de la agenda
-                        Box(
-                            modifier = Modifier
-                                .width(6.dp)
-                                .height(50.dp)
-                                .background(Color(0xFF3F51B5), RoundedCornerShape(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            Text(
-                                text = clase.asignatura_descripcion ?: clase.id_asignatura,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = "Secuencia: ${clase.id_secuencia} • Edificio: ${clase.edificio_siglas ?: clase.id_edificio.toString()} • Salón: ${clase.numero_salon ?: clase.id_salones.toString()}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        // Muestra el Rango Horario consolidado (Ej: 15:00 - 16:30)
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = clase.hora_inicio_fusionada ?: "",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF3F51B5)
-                            )
-                            Text(
-                                text = clase.hora_fin_fusionada ?: "",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
+                CardClase(clase = clase)
             }
         }
 
-        // --- 3. RENDERIZADO DE EVENTOS PERSONALES DEL USUARIO ---
+        // 3 ── Eventos personales del usuario ──────────────────────────────────
         if (eventosPersonales.isNotEmpty()) {
-            item {
+            item(key = "header_eventos") {
+                SeccionHeader(texto = "Eventos Personales")
+            }
+            items(eventosPersonales, key = { it.idEvento }) { evento ->
+                CardEvento(evento = evento)
+            }
+        }
+
+        // 4 ── Estado vacío ────────────────────────────────────────────────────
+        if (!hayContenido) {
+            item(key = "estado_vacio") {
+                CardVacia()
+            }
+        }
+    }
+}
+
+// ── Componentes privados ───────────────────────────────────────────────────────
+
+@Composable
+private fun SeccionHeader(texto: String) {
+    Text(
+        text = texto,
+        style = MaterialTheme.typography.labelLarge,
+        color = GuindaInstitucional,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(start = 6.dp, top = 4.dp)
+    )
+}
+
+@Composable
+private fun BarraIndicador(color: Color, height: Int = 54) {
+    Box(
+        modifier = Modifier
+            .width(6.dp)
+            .height(height.dp)
+            .background(color, RoundedCornerShape(4.dp))
+    )
+}
+
+@Composable
+private fun CardDiaOficial(dia: DiaEscolarDto) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BarraIndicador(color = colorParaTipoDia(dia.id_tipodias))
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = "Eventos Personales",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = guindaInstitucional,
+                    text = dia.descripcionActividad,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 6.dp, top = 6.dp)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Calendario Oficial • Actividad Tipo ${dia.id_tipodias}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CardClase(clase: HoraClaseDto) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BarraIndicador(color = AzulAcademico, height = 50)
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = clase.asignatura_descripcion ?: clase.id_asignatura,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "Secuencia: ${clase.id_secuencia} • " +
+                            "Edificio: ${clase.edificio_siglas ?: clase.id_edificio} • " +
+                            "Salón: ${clase.numero_salon ?: clase.id_salones}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            items(eventosPersonales, key = { it.idEvento }) { evento ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(6.dp)
-                                .height(58.dp)
-                                .background(guindaInstitucional, RoundedCornerShape(4.dp))
-                        )
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            Text(
-                                text = evento.titulo,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            if (!evento.lugar.isNullOrEmpty()) {
-                                Text(
-                                    text = "📍 ${evento.lugar}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            if (!evento.notas.isNullOrEmpty()) {
-                                Text(
-                                    text = evento.notas,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = evento.obtenerHoraInicioFormateada(),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = guindaInstitucional,
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-                }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = clase.hora_inicio_fusionada ?: "",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulAcademico
+                )
+                Text(
+                    text = clase.hora_fin_fusionada ?: "",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
             }
         }
+    }
+}
 
-        // --- 4. ESTADO VACÍO ACTUALIZADO (Aplica si de plano no hay ninguna de las tres fuentes) ---
-        if (diaCoincidente == null && eventosPersonales.isEmpty() && materiasFusionadas.isEmpty()) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+@Composable
+private fun CardEvento(evento: EventoIdUsuarioDto) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BarraIndicador(color = GuindaInstitucional, height = 58)
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = evento.titulo,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (!evento.lugar.isNullOrEmpty()) {
+                    Text(
+                        text = "📍 ${evento.lugar}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No hay actividades ni clases programadas para este día",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    }
+                }
+                if (!evento.notas.isNullOrEmpty()) {
+                    Text(
+                        text = evento.notas,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
+
+            Text(
+                text = evento.obtenerHoraInicioFormateada(),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = GuindaInstitucional,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CardVacia() {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+        )
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "No hay actividades ni clases programadas para este día",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
         }
     }
 }

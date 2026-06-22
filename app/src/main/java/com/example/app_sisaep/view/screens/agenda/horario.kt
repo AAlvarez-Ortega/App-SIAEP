@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -57,68 +56,66 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
+// ── Constantes de diseño extraídas del composable para no recrearlas en cada recomposición ──
+private val GuindaSuave = Color(0xFF8A1F4D)
+private val ColoresPaleta = listOf(
+    Color(0xFF3F51B5),
+    Color(0xFF009688),
+    Color(0xFF03A9F4),
+    Color(0xFFE53935)
+)
+private val ColumnasDias = listOf("Lunes", "Martes", "Miercoles", "Jueves", "Viernes")
+
+// ── Algoritmo de fusión extraído como función pura (no depende de Compose) ──
+private fun fusionarHorario(lista: List<HoraClaseDto>): List<HoraClaseDto> {
+    return lista
+        .groupBy { (it.nombre_dia?.trim()?.uppercase() ?: "") to it.id_asignatura }
+        .mapNotNull { (_, subLista) ->
+            val ordenada = subLista.sortedBy { it.id_horas }
+            ordenada.firstOrNull()?.copy()?.also { base ->
+                base.hora_inicio_fusionada = ordenada.first().ini_horas
+                base.hora_fin_fusionada = ordenada.last().fin_horas
+            }
+        }
+}
+
+// ── Función pura para asignar colores por id_asignatura ──
+private fun asignarColores(lista: List<HoraClaseDto>): Map<String, Color> {
+    val idsUnicos = lista.map { it.id_asignatura }.distinct()
+    return idsUnicos.associateWith { id ->
+        ColoresPaleta[idsUnicos.indexOf(id) % ColoresPaleta.size]
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HorarioContent(
     selectedDate: LocalDate,
     modifier: Modifier = Modifier
 ) {
-    val guindaSuave = Color(0xFF8A1F4D)
-    val columnasDias = listOf("Lunes", "Martes", "Miercoles", "Jueves", "Viernes")
-
-    val mapaColoresAsignaturas = remember {
-        listOf(
-            Color(0xFF3F51B5), Color(0xFF009688), Color(0xFF03A9F4), Color(0xFFE53935)
-        )
-    }
-
     var listaHorarioReal by remember { mutableStateOf<List<HoraClaseDto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-
     var asignaturaSeleccionada by remember { mutableStateOf<HoraClaseDto?>(null) }
-    val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     LaunchedEffect(Unit) {
+        isLoading = true
         try {
-            isLoading = true
             listaHorarioReal = obtenerHorarioAcademico()
-        } catch (_: Exception) {
-        } finally {
-            isLoading = false
-        }
+        } catch (_: Exception) { /* mantiene lista vacía */ }
+        isLoading = false
     }
 
-    // Algoritmo de fusión
-    val horarioFusionado = remember(listaHorarioReal) {
-        val listaResultado = mutableListOf<HoraClaseDto>()
-        val agrupadosPorDiaYAsignatura = listaHorarioReal.groupBy {
-            (it.nombre_dia?.trim()?.uppercase() ?: "") to it.id_asignatura
-        }
+    // Derivadas memorizadas con la lista como key correcta
+    val horarioFusionado = remember(listaHorarioReal) { fusionarHorario(listaHorarioReal) }
+    val coloresAsignados = remember(listaHorarioReal) { asignarColores(listaHorarioReal) }
 
-        agrupadosPorDiaYAsignatura.forEach { (_, subListaMateria) ->
-            val subListaOrdenada = subListaMateria.sortedBy { it.id_horas }
-            if (subListaOrdenada.isNotEmpty()) {
-                val moldeBase = subListaOrdenada.first().copy()
-                moldeBase.hora_inicio_fusionada = subListaOrdenada.first().ini_horas
-                moldeBase.hora_fin_fusionada = subListaOrdenada.last().fin_horas
-                listaResultado.add(moldeBase)
-            }
-        }
-        listaResultado
-    }
-
-    val renglonesHorasDinamicas = remember(horarioFusionado) {
-        horarioFusionado.distinctBy { (it.hora_inicio_fusionada to it.hora_fin_fusionada) }
+    // Renglones únicos de tiempo, ordenados por id_horas del primer bloque que los define
+    val renglonesHoras = remember(horarioFusionado) {
+        horarioFusionado
+            .distinctBy { it.hora_inicio_fusionada to it.hora_fin_fusionada }
             .sortedBy { it.id_horas }
-    }
-
-    val coloresAsignados = remember(listaHorarioReal) {
-        val unicas = listaHorarioReal.map { it.id_asignatura }.distinct()
-        unicas.associateWith { id ->
-            val index = unicas.indexOf(id) % mapaColoresAsignaturas.size
-            mapaColoresAsignaturas[index]
-        }
     }
 
     Column(
@@ -133,20 +130,26 @@ fun HorarioContent(
             fontWeight = FontWeight.Bold
         )
 
-        if (isLoading) {
-            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = guindaSuave)
+        when {
+            isLoading -> Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = GuindaSuave)
             }
-        } else if (horarioFusionado.isEmpty()) {
-            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+
+            horarioFusionado.isEmpty() -> Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
                     text = "No tienes asignaturas cargadas.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        } else {
-            Box(
+
+            else -> Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -154,12 +157,12 @@ fun HorarioContent(
                     .horizontalScroll(rememberScrollState())
             ) {
                 Column {
-                    // --- HEADER DÍAS ---
+                    // Header de días
                     Row(modifier = Modifier.padding(bottom = 8.dp)) {
                         Spacer(modifier = Modifier.width(65.dp))
-                        columnasDias.forEach { nombreDia ->
+                        ColumnasDias.forEach { dia ->
                             Text(
-                                text = nombreDia,
+                                text = dia,
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
@@ -168,154 +171,192 @@ fun HorarioContent(
                         }
                     }
 
-                    // --- FILAS DE HORAS ---
-                    renglonesHorasDinamicas.forEach { bloqueRenglon ->
-                        val textoRango = "${bloqueRenglon.hora_inicio_fusionada ?: ""}-\n${bloqueRenglon.hora_fin_fusionada ?: ""}"
-
-                        Row(
-                            modifier = Modifier.padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = textoRango,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 12.sp,
-                                modifier = Modifier.width(65.dp)
-                            )
-
-                            columnasDias.forEach { nombreDiaUI ->
-                                val claseCoincidente = horarioFusionado.firstOrNull { clase ->
-                                    val diaBD = clase.nombre_dia?.trim()?.uppercase() ?: ""
-                                    val diaUI = nombreDiaUI.trim().uppercase()
-
-                                    diaBD == diaUI &&
-                                            clase.hora_inicio_fusionada == bloqueRenglon.hora_inicio_fusionada &&
-                                            clase.hora_fin_fusionada == bloqueRenglon.hora_fin_fusionada
-                                }
-
-                                if (claseCoincidente != null) {
-                                    val colorCelda = coloresAsignados[claseCoincidente.id_asignatura] ?: guindaSuave
-
-                                    // 🚀 ANIMACIÓN A: Estado reactivo de escala al dar click
-                                    var isPressed by remember { mutableStateOf(false) }
-                                    val scaleAnimated by animateFloatAsState(
-                                        targetValue = if (isPressed) 0.92f else 1f,
-                                        animationSpec = tween(durationMillis = 100),
-                                        label = "CeldaScale"
-                                    )
-                                    val coroutineScope = rememberCoroutineScope()
-
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(horizontal = 4.dp)
-                                            .size(width = 60.dp, height = 60.dp)
-                                            .graphicsLayer(scaleX = scaleAnimated, scaleY = scaleAnimated)
-                                            .background(colorCelda, RoundedCornerShape(12.dp))
-                                            .clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = ripple(bounded = true, color = Color.White)
-                                            ) {
-                                                coroutineScope.launch {
-                                                    isPressed = true
-                                                    delay(80) // Delay mini para que el usuario aprecie el hundimiento
-                                                    isPressed = false
-                                                    asignaturaSeleccionada = claseCoincidente
-                                                    showBottomSheet = true
-                                                }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = claseCoincidente.asignatura_abreviatura ?: claseCoincidente.id_asignatura,
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                } else {
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(horizontal = 4.dp)
-                                            .size(width = 60.dp, height = 60.dp)
-                                            .background(
-                                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                                RoundedCornerShape(12.dp)
-                                            )
-                                    )
-                                }
+                    // Filas de horas
+                    renglonesHoras.forEach { bloqueRenglon ->
+                        FilaHorario(
+                            bloqueRenglon = bloqueRenglon,
+                            horarioFusionado = horarioFusionado,
+                            coloresAsignados = coloresAsignados,
+                            onCeldaClick = { clase ->
+                                asignaturaSeleccionada = clase
+                                showBottomSheet = true
                             }
-                        }
+                        )
                     }
                 }
             }
         }
     }
 
-    // --- BOTTOM SHEET CON ANIMACIÓN SECUENCIAL INTERNA ---
+    // Bottom Sheet
     if (showBottomSheet && asignaturaSeleccionada != null) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface
         ) {
-            val detalle = asignaturaSeleccionada!!
+            DetalleAsignaturaSheet(
+                detalle = asignaturaSeleccionada!!,
+                onDismiss = { showBottomSheet = false }
+            )
+        }
+    }
+}
 
-            // Estado interno para gatillar la animación de cascada de los renglones
-            var triggerContentAnimation by remember { mutableStateOf(false) }
-            LaunchedEffect(Unit) {
-                triggerContentAnimation = true
+// ── Fila completa de una franja horaria ──
+@Composable
+private fun FilaHorario(
+    bloqueRenglon: HoraClaseDto,
+    horarioFusionado: List<HoraClaseDto>,
+    coloresAsignados: Map<String, Color>,
+    onCeldaClick: (HoraClaseDto) -> Unit
+) {
+    val textoRango = "${bloqueRenglon.hora_inicio_fusionada ?: ""}-\n${bloqueRenglon.hora_fin_fusionada ?: ""}"
+
+    Row(
+        modifier = Modifier.padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = textoRango,
+            style = MaterialTheme.typography.labelSmall,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            lineHeight = 12.sp,
+            modifier = Modifier.width(65.dp)
+        )
+
+        ColumnasDias.forEach { nombreDia ->
+            val clase = horarioFusionado.firstOrNull { c ->
+                c.nombre_dia?.trim()?.uppercase() == nombreDia.uppercase() &&
+                        c.hora_inicio_fusionada == bloqueRenglon.hora_inicio_fusionada &&
+                        c.hora_fin_fusionada == bloqueRenglon.hora_fin_fusionada
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 24.dp, end = 24.dp, bottom = 42.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Text(
-                    text = "Detalles de la Asignatura",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = guindaSuave,
-                    fontWeight = FontWeight.Bold
+            if (clase != null) {
+                CeldaClase(
+                    clase = clase,
+                    color = coloresAsignados[clase.id_asignatura] ?: GuindaSuave,
+                    onClick = { onCeldaClick(clase) }
                 )
-
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                // 🚀 ANIMACIÓN B: Entrada escalonada de la información de la clase
-                AnimatedVisibility(
-                    visible = triggerContentAnimation,
-                    enter = fadeIn(animationSpec = tween(400)) + slideInVertically(animationSpec = tween(400), initialOffsetY = { it / 2 })
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        ItemDetalleRow(lbl = "Nombre Completo:", valor = detalle.asignatura_descripcion ?: "N/A")
-                        ItemDetalleRow(lbl = "Clave:", valor = detalle.id_asignatura)
-                        ItemDetalleRow(lbl = "Secuencia / Turno:", valor = "${detalle.id_secuencia} (${detalle.turno ?: "N/A"})")
-                        ItemDetalleRow(
-                            lbl = "Ubicación:",
-                            valor = "${detalle.edificio_nombre ?: "Edif ${detalle.id_edificio}"} • Salón: ${detalle.numero_salon ?: detalle.id_salones.toString()}"
-                        )
-                        ItemDetalleRow(
-                            lbl = "Horario de Bloque Completo:",
-                            valor = "${detalle.nombre_dia} de ${detalle.hora_inicio_fusionada} a ${detalle.hora_fin_fusionada} hrs"
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Button(
-                    onClick = { showBottomSheet = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = guindaSuave),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(text = "Entendido", color = Color.White)
-                }
+            } else {
+                CeldaVacia()
             }
+        }
+    }
+}
+
+// ── Celda con clase (extrae el estado isPressed fuera del forEach) ──
+@Composable
+private fun CeldaClase(
+    clase: HoraClaseDto,
+    color: Color,
+    onClick: () -> Unit
+) {
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.92f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "CeldaScale"
+    )
+    val scope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .size(width = 60.dp, height = 60.dp)
+            .graphicsLayer(scaleX = scale, scaleY = scale)
+            .background(color, RoundedCornerShape(12.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(bounded = true, color = Color.White)
+            ) {
+                scope.launch {
+                    isPressed = true
+                    delay(80)
+                    isPressed = false
+                    onClick()
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = clase.asignatura_abreviatura ?: clase.id_asignatura,
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+// ── Celda vacía ──
+@Composable
+private fun CeldaVacia() {
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .size(width = 60.dp, height = 60.dp)
+            .background(
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                RoundedCornerShape(12.dp)
+            )
+    )
+}
+
+// ── Contenido del Bottom Sheet ──
+@Composable
+private fun DetalleAsignaturaSheet(
+    detalle: HoraClaseDto,
+    onDismiss: () -> Unit
+) {
+    var triggerAnimation by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { triggerAnimation = true }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 24.dp, bottom = 42.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Text(
+            text = "Detalles de la Asignatura",
+            style = MaterialTheme.typography.titleMedium,
+            color = GuindaSuave,
+            fontWeight = FontWeight.Bold
+        )
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        AnimatedVisibility(
+            visible = triggerAnimation,
+            enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { it / 2 }
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                ItemDetalleRow("Nombre Completo:", detalle.asignatura_descripcion ?: "N/A")
+                ItemDetalleRow("Clave:", detalle.id_asignatura)
+                ItemDetalleRow("Secuencia / Turno:", "${detalle.id_secuencia} (${detalle.turno ?: "N/A"})")
+                ItemDetalleRow(
+                    lbl = "Ubicación:",
+                    valor = "${detalle.edificio_nombre ?: "Edif ${detalle.id_edificio}"} • Salón: ${detalle.numero_salon ?: detalle.id_salones}"
+                )
+                ItemDetalleRow(
+                    lbl = "Horario de Bloque Completo:",
+                    valor = "${detalle.nombre_dia} de ${detalle.hora_inicio_fusionada} a ${detalle.hora_fin_fusionada} hrs"
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Button(
+            onClick = onDismiss,
+            colors = ButtonDefaults.buttonColors(containerColor = GuindaSuave),
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text("Entendido", color = Color.White)
         }
     }
 }

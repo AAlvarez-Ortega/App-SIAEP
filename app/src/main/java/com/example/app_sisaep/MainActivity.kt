@@ -23,12 +23,12 @@ import com.example.app_sisaep.view.screens.Btncreateavisos.PantallaCompletaAviso
 import com.example.app_sisaep.view.screens.getDarkModePreference
 import com.example.app_sisaep.viewModel.escucharAvisosUrgentes
 import com.example.app_sisaep.viewModel.obtenerUltimoAvisoUrgente
+import io.github.jan.supabase.exceptions.HttpRequestException
 import io.github.jan.supabase.gotrue.SessionStatus
 import io.github.jan.supabase.gotrue.auth
-
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,49 +43,45 @@ class MainActivity : AppCompatActivity() {
             val context = LocalContext.current
             val navController = rememberNavController()
 
-            var darkMode by remember {
-                mutableStateOf(getDarkModePreference(context))
-            }
-
+            var darkMode by remember { mutableStateOf(getDarkModePreference(context)) }
             var avisoUrgente by remember { mutableStateOf<AvisoGlobal?>(null) }
 
             val sharedPrefs = remember {
                 context.getSharedPreferences("avisos_prefs", Context.MODE_PRIVATE)
             }
 
-            // =====================================================================
-            // ESCENARIO 1: Cuando la app se abre (desde cerrada) y detecta la sesión
-            // =====================================================================
+            // ── Aviso histórico al autenticarse ───────────────────────────────
             LaunchedEffect(Unit) {
                 SupabaseConnectionApp.client.auth.sessionStatus.collectLatest { estatus ->
                     if (estatus is SessionStatus.Authenticated) {
-                        // El usuario está logueado con éxito, traemos el histórico
-                        val avisoExistente = obtenerUltimoAvisoUrgente()
-                        if (avisoExistente != null) {
-                            val ultimoIdVisto = sharedPrefs.getString("ultimo_aviso_id", "")
-                            if (avisoExistente.id != ultimoIdVisto) {
-                                avisoUrgente = avisoExistente
+                        try {
+                            val avisoExistente = obtenerUltimoAvisoUrgente()
+                            if (avisoExistente != null) {
+                                val ultimoIdVisto = sharedPrefs.getString("ultimo_aviso_id", "")
+                                if (avisoExistente.id != ultimoIdVisto) {
+                                    avisoUrgente = avisoExistente
+                                }
                             }
+                        } catch (_: HttpRequestException) {
+                            // Sin conexión — la app sigue funcionando sin el aviso
+                        } catch (_: Exception) {
+                            // Cualquier otro error de red o Supabase
                         }
                     }
                 }
             }
 
-
-
-                // =====================================================================
-                // ESCENARIO 2: Cuando el usuario YA está dentro de la app (Tiempo Real)
-                // =====================================================================
+            // ── Escucha en tiempo real de avisos urgentes ─────────────────────
             LaunchedEffect(Unit) {
-                // Usamos launch para aislar la recolección del Flow en tiempo real
-                // y evitar que el estado de autenticación interfiera con el canal
                 launch {
-                    escucharAvisosUrgentes().collect { nuevoAviso ->
-                        val ultimoIdVisto = sharedPrefs.getString("ultimo_aviso_id", "")
-                        if (nuevoAviso.id != ultimoIdVisto) {
-                            avisoUrgente = nuevoAviso
+                    escucharAvisosUrgentes()
+                        .catch { /* Error en el canal realtime — ignoramos silenciosamente */ }
+                        .collect { nuevoAviso ->
+                            val ultimoIdVisto = sharedPrefs.getString("ultimo_aviso_id", "")
+                            if (nuevoAviso.id != ultimoIdVisto) {
+                                avisoUrgente = nuevoAviso
+                            }
                         }
-                    }
                 }
             }
 
@@ -111,7 +107,6 @@ class MainActivity : AppCompatActivity() {
                             aviso = aviso,
                             onConfirm = {
                                 sharedPrefs.edit()
-                                    // 3. Cambiado 'aviso.id' por 'aviso.id_aviso' aquí también
                                     .putString("ultimo_aviso_id", aviso.id)
                                     .apply()
                                 avisoUrgente = null

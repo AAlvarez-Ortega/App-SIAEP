@@ -1,14 +1,14 @@
 package com.example.app_sisaep.view.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.app_sisaep.view.screens.*
-import com.example.app_sisaep.view.screens.chat.ChatGrupoScreen
-import com.example.app_sisaep.view.screens.clases.CrearAvisoClaseScreen
 import com.example.app_sisaep.view.screens.clases.TablonClaseScreen
-import com.example.app_sisaep.view.screens.clases.TareasProfesorClaseScreen
 import com.example.app_sisaep.view.screens.clases.sectionChat.IndividualChatScreen
 import com.example.app_sisaep.view.screens.perfilUsuario.PerfilUsuarioScreen
 
@@ -18,9 +18,8 @@ fun AppNavHost(
     darkMode: Boolean,
     onDarkModeChange: (Boolean) -> Unit
 ) {
-
     NavHost(
-        navController = navController,
+        navController    = navController,
         startDestination = Routes.Login
     ) {
 
@@ -48,74 +47,6 @@ fun AppNavHost(
             ClasesScreen(navController = navController)
         }
 
-        composable(
-            route = "tablon_clase/{claseId}/{claseNombre}"
-        ) { backStackEntry ->
-
-            val claseId =
-                backStackEntry.arguments?.getString("claseId") ?: ""
-
-            val claseNombre =
-                backStackEntry.arguments?.getString("claseNombre") ?: "Clase"
-
-            TablonClaseScreen(
-                navController = navController,
-                claseId = claseId,
-                claseNombre = claseNombre
-            )
-        }
-
-        composable(
-            route = "tareas_profesor_clase/{claseId}/{claseNombre}"
-        ) { backStackEntry ->
-
-            val claseId =
-                backStackEntry.arguments?.getString("claseId") ?: ""
-
-            val claseNombre =
-                backStackEntry.arguments?.getString("claseNombre") ?: "Clase"
-
-            TareasProfesorClaseScreen(
-                navController = navController,
-                claseId = claseId,
-                claseNombre = claseNombre
-            )
-        }
-
-        composable(
-            route = "crear_aviso_clase/{claseId}/{claseNombre}"
-        ) { backStackEntry ->
-
-            val claseId =
-                backStackEntry.arguments?.getString("claseId") ?: ""
-
-            val claseNombre =
-                backStackEntry.arguments?.getString("claseNombre") ?: "Clase"
-
-            CrearAvisoClaseScreen(
-                navController = navController,
-                claseId = claseId,
-                claseNombre = claseNombre
-            )
-        }
-
-        composable(
-            route = "chat_grupo/{grupoId}/{grupoNombre}"
-        ) { backStackEntry ->
-
-            val grupoId =
-                backStackEntry.arguments?.getString("grupoId") ?: ""
-
-            val grupoNombre =
-                backStackEntry.arguments?.getString("grupoNombre") ?: "Grupo"
-
-            ChatGrupoScreen(
-                navController = navController,
-                grupoId = grupoId,
-                grupoNombre = grupoNombre
-            )
-        }
-
         composable(Routes.GenerarQR) {
             GenerarQrScreen(navController = navController)
         }
@@ -126,31 +57,45 @@ fun AppNavHost(
 
         composable(Routes.Config) {
             ConfigScreen(
-                navController = navController,
-                darkMode = darkMode,
+                navController    = navController,
+                darkMode         = darkMode,
                 onDarkModeChange = onDarkModeChange
-            )
-        }
-
-        composable(
-            route = "chat/{userId}/{userName}"
-        ) { backStackEntry ->
-
-            val userId =
-                backStackEntry.arguments?.getString("userId") ?: ""
-
-            val userName =
-                backStackEntry.arguments?.getString("userName") ?: "Usuario"
-
-            IndividualChatScreen(
-                navController = navController,
-                receiverId = userId,
-                receiverName = userName
             )
         }
 
         composable(Routes.Perfil) {
             PerfilUsuarioScreen(navController = navController)
         }
+
+        // ── Chat individual ───────────────────────────────────────────────────
+        composable(
+            route     = "chat/{userId}/{userName}",
+            arguments = listOf(
+                navArgument("userId")   { type = NavType.StringType },
+                navArgument("userName") { type = NavType.StringType }
+            )
+        ) { back ->
+            IndividualChatScreen(
+                navController = navController,
+                receiverId    = back.arguments?.getString("userId")   ?: "",
+                receiverName  = back.arguments?.getString("userName") ?: "Usuario"
+            )
+        }
+
+        // ── Tablón de la clase ────────────────────────────────────────────────
+        composable(
+            route     = Routes.TablonDeclase,
+            arguments = listOf(
+                navArgument("clase_id")     { type = NavType.StringType },
+                navArgument("clase_nombre") { type = NavType.StringType }
+            )
+        ) { back ->
+            TablonClaseScreen(
+                navController = navController,
+                claseId       = back.arguments?.getString("clase_id")     ?: "",
+                claseNombre   = Uri.decode(back.arguments?.getString("clase_nombre") ?: "")
+            )
+        }
+
     }
 }

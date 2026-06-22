@@ -1,5 +1,7 @@
 package com.example.app_sisaep.view.navigation
 
+import android.net.Uri
+
 object Routes {
 
     // Auth
@@ -24,5 +26,10 @@ object Routes {
 
     //perfil de usuario
     const val Perfil = "perfil"
+
+    //CHAT GENERAL DE LA MATERIA
+    const val TablonDeclase = "tablon_clase/{clase_id}/{clase_nombre}"
+    fun routeTablonClase(claseId: String, claseNombre: String) =
+        "tablon_clase/$claseId/${Uri.encode(claseNombre)}"
 
 }
