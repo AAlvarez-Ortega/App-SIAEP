@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -28,11 +29,12 @@ import androidx.navigation.NavController
 import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.EscuelaDto
 import com.example.app_sisaep.model.dto.SolicitudInsertDto
-import com.example.app_sisaep.model.supabase.SupabaseConnection
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.viewModel.consultaas
 import com.example.app_sisaep.viewModel.estatus
-import io.github.jan.supabase.gotrue.auth
+import com.example.app_sisaep.viewModel.RegistroApp
+import com.example.app_sisaep.viewModel.SolicitudDuplicadaException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 private val Guinda = Color(0xFF7A003C)
@@ -59,15 +61,18 @@ private enum class Step(
 @Composable
 fun PreRegistroScreen(navController: NavController) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
 
     var loading by remember { mutableStateOf(true) }
+    var schoolsLoadFailed by remember { mutableStateOf(false) }
     var sending by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     var escuelas by remember { mutableStateOf<List<EscuelaDto>>(emptyList()) }
     var escuelaSeleccionada by remember { mutableStateOf<EscuelaDto?>(null) }
     var expanded by remember { mutableStateOf(false) }
+    val comprobante = remember { RegistroApp.nuevoComprobante() }
 
     var nombre by remember { mutableStateOf("") }
     var apellidoPaterno by remember { mutableStateOf("") }
@@ -104,24 +109,24 @@ fun PreRegistroScreen(navController: NavController) {
         when (step) {
             Step.Personal -> {
                 if (nombre.isBlank()) {
-                    errNombre = context.getString(R.string.required)
+                    errNombre = resources.getString(R.string.required)
                     ok = false
                 }
                 if (apellidoPaterno.isBlank()) {
-                    errApPat = context.getString(R.string.required)
+                    errApPat = resources.getString(R.string.required)
                     ok = false
                 }
                 if (apellidoMaterno.isBlank()) {
-                    errApMat = context.getString(R.string.required)
+                    errApMat = resources.getString(R.string.required)
                     ok = false
                 }
 
                 val be = boletaOEmpleado.trim()
                 if (be.isBlank()) {
-                    errBoleta = context.getString(R.string.required)
+                    errBoleta = resources.getString(R.string.required)
                     ok = false
                 } else if (!be.all { it.isDigit() } || be.length !in 8..10) {
-                    errBoleta = context.getString(R.string.employee_or_student_number_error)
+                    errBoleta = resources.getString(R.string.employee_or_student_number_error)
                     ok = false
                 }
             }
@@ -129,20 +134,20 @@ fun PreRegistroScreen(navController: NavController) {
             Step.Contacto -> {
                 val email = correo.trim()
                 if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    errCorreo = context.getString(R.string.invalid_email)
+                    errCorreo = resources.getString(R.string.invalid_email)
                     ok = false
                 }
 
                 val c = curp.trim()
                 if (c.length != 18) {
-                    errCurp = context.getString(R.string.curp_length_error)
+                    errCurp = resources.getString(R.string.curp_length_error)
                     ok = false
                 }
             }
 
             Step.Escuela -> {
                 if (escuelaSeleccionada == null) {
-                    errEscuela = context.getString(R.string.select_school_error)
+                    errEscuela = resources.getString(R.string.select_school_error)
                     ok = false
                 }
             }
@@ -177,16 +182,22 @@ fun PreRegistroScreen(navController: NavController) {
         disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
-    LaunchedEffect(Unit) {
+    suspend fun cargarEscuelas() {
         loading = true
-        errorMessage = null
+        schoolsLoadFailed = false
         try {
             escuelas = consultaas.getEscuelas()
+            schoolsLoadFailed = escuelas.isEmpty()
         } catch (e: Exception) {
-            errorMessage = e.message ?: context.getString(R.string.schools_load_error)
+            if (e is CancellationException) throw e
+            schoolsLoadFailed = true
         } finally {
             loading = false
         }
+    }
+
+    LaunchedEffect(Unit) {
+        cargarEscuelas()
     }
 
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -253,7 +264,10 @@ fun PreRegistroScreen(navController: NavController) {
                 Spacer(Modifier.height(12.dp))
             }
 
-            errorMessage?.let {
+            val visibleError = errorMessage ?: if (schoolsLoadFailed) {
+                stringResource(R.string.schools_load_error)
+            } else null
+            visibleError?.let {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF1F3)),
                     modifier = Modifier.fillMaxWidth()
@@ -266,6 +280,14 @@ fun PreRegistroScreen(navController: NavController) {
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(it, color = Color(0xFF7A1A2E))
+                        if (schoolsLoadFailed) {
+                            TextButton(
+                                enabled = !loading && !sending,
+                                onClick = { scope.launch { cargarEscuelas() } }
+                            ) {
+                                Text(stringResource(R.string.retry))
+                            }
+                        }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
@@ -510,17 +532,8 @@ fun PreRegistroScreen(navController: NavController) {
                             errorMessage = null
 
                             scope.launch {
+                                val comprobanteAnterior = estatus.obtenerComprobante(context)
                                 try {
-                                    val yaExiste = consultaas.existeSolicitud(
-                                        boletaOEmpleado = boletaOEmpleado.trim(),
-                                        curp = curp.trim()
-                                    )
-
-                                    if (yaExiste) {
-                                        errorMessage = context.getString(R.string.duplicate_request_error)
-                                        return@launch
-                                    }
-
                                     val payload = SolicitudInsertDto(
                                         nombre = nombre.trim(),
                                         apellidoPaterno = apellidoPaterno.trim(),
@@ -531,21 +544,25 @@ fun PreRegistroScreen(navController: NavController) {
                                         escuelaId = escuelaSeleccionada!!.id
                                     )
 
-                                    val newId = consultaas.insertarSolicitud(payload)
-
-                                    estatus.guardarSolicitudPendiente(context, newId)
-
-                                    try {
-                                        SupabaseConnection.client.auth.signOut()
-                                    } catch (_: Exception) {
-                                    }
+                                    // Guardar el comprobante antes de enviar permite recuperar
+                                    // el estado si el servidor acepta pero se pierde la respuesta.
+                                    estatus.guardarSolicitudPendiente(context, comprobante)
+                                    consultaas.insertarSolicitud(payload, comprobante)
 
                                     navController.navigate(Routes.Login) {
                                         popUpTo(Routes.PreRegistro) { inclusive = true }
                                         launchSingleTop = true
                                     }
                                 } catch (e: Exception) {
-                                    errorMessage = e.message ?: context.getString(R.string.submit_request_error)
+                                    if (e is CancellationException) throw e
+                                    if (e is SolicitudDuplicadaException) {
+                                        if (comprobanteAnterior == null) estatus.limpiarSolicitudPendiente(context)
+                                        else estatus.guardarSolicitudPendiente(context, comprobanteAnterior)
+                                    }
+                                    errorMessage = resources.getString(
+                                        if (e is SolicitudDuplicadaException) R.string.duplicate_request_error
+                                        else R.string.submit_request_error
+                                    )
                                 } finally {
                                     sending = false
                                 }
