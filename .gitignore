@@ -13,3 +13,14 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Credenciales locales de la cuenta QA
+diagnostico/.qa-account.json
+diagnostico/.qa-password.dpapi
+diagnostico/.qa-account-metadata.json
+
+# Credencial temporal de reparación de SISAP
+diagnostico/reparacion-2026-10-05/.management-token.*
+
+# Archivos generados por Kotlin
+.kotlin/
