@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.viewModel.crearAviso
 import kotlinx.coroutines.launch
@@ -28,6 +29,7 @@ fun LogCreateAviso(
     onSuccess: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
@@ -166,7 +168,7 @@ fun LogCreateAviso(
                         if (fechaSeleccionada.isBefore(ahora)) {
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.date_must_be_future),
+                                resources.getString(R.string.date_must_be_future),
                                 Toast.LENGTH_SHORT
                             ).show()
                             return@Button
@@ -182,7 +184,7 @@ fun LogCreateAviso(
                         if (exito) {
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.notice_success),
+                                resources.getString(R.string.notice_success),
                                 Toast.LENGTH_LONG
                             ).show()
                             onSuccess()
@@ -190,7 +192,7 @@ fun LogCreateAviso(
                         } else {
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.server_error),
+                                resources.getString(R.string.server_error),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
