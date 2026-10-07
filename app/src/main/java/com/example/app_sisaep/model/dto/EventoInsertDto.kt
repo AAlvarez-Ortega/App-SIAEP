@@ -3,6 +3,7 @@ package com.example.app_sisaep.model.dto
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -35,10 +36,11 @@ data class EventoIdUsuarioDto(
     @SerialName("status") val status: Int
 ) {
     //Extensión para mostrar solo la hora bonita en la tarjeta (Ej: "09:00 AM")
-    fun obtenerHoraInicioFormateada(): String {
+    fun obtenerHoraInicioFormateada(zona: ZoneId = ZoneId.systemDefault()): String {
         return try {
             val odt = OffsetDateTime.parse(horaInicio)
-            odt.format(DateTimeFormatter.ofPattern("hh:mm a", Locale.US))
+            odt.atZoneSameInstant(zona)
+                .format(DateTimeFormatter.ofPattern("hh:mm a", Locale.US))
         } catch (_: Exception) {
             ""
         }
