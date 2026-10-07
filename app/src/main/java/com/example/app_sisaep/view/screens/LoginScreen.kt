@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -23,11 +24,13 @@ import com.example.app_sisaep.viewModel.AuthApp
 import com.example.app_sisaep.viewModel.RecordarSesion
 import com.example.app_sisaep.viewModel.estatus
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
 
     var email by remember { mutableStateOf("") }
@@ -64,18 +67,19 @@ fun LoginScreen(navController: NavController) {
         try {
             estadoSolicitud = estatus.obtenerEstadoSolicitud(context)
         } catch (e: Exception) {
-            statusError = e.message ?: context.getString(R.string.error_validate_request_status)
+            if (e is CancellationException) throw e
+            statusError = resources.getString(R.string.error_validate_request_status)
             estadoSolicitud = estatus.EstadoSolicitud.NO_EXISTE
         } finally {
             checkingStatus = false
         }
     }
 
-    val bloqueadoPorEstado =
-        estadoSolicitud == estatus.EstadoSolicitud.PENDIENTE ||
-                estadoSolicitud == estatus.EstadoSolicitud.RECHAZADO
-
-    val bloqueado = bloqueadoPorEstado || checkingStatus || isLoggingIn
+    // Auth valida el acceso. Una solicitud local no impide usar una cuenta existente.
+    val bloqueado = checkingStatus || isLoggingIn
+    val puedePreregistrar = !bloqueado && statusError == null &&
+        estadoSolicitud != estatus.EstadoSolicitud.PENDIENTE &&
+        estadoSolicitud != estatus.EstadoSolicitud.RECHAZADO
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
@@ -258,11 +262,11 @@ fun LoginScreen(navController: NavController) {
                         val pass = password
 
                         if (!isValidEmail(emailClean)) {
-                            loginError = context.getString(R.string.error_valid_email)
+                            loginError = resources.getString(R.string.error_valid_email)
                             return@launch
                         }
                         if (pass.isBlank()) {
-                            loginError = context.getString(R.string.error_enter_password)
+                            loginError = resources.getString(R.string.error_enter_password)
                             return@launch
                         }
 
@@ -285,14 +289,14 @@ fun LoginScreen(navController: NavController) {
                                         msg.contains("email not confirmed") ||
                                                 msg.contains("email_not_confirmed") ||
                                                 msg.contains("confirm") ->
-                                            context.getString(R.string.error_email_not_confirmed)
+                                            resources.getString(R.string.error_email_not_confirmed)
 
                                         msg.contains("invalid login") ||
                                                 msg.contains("invalid") ||
                                                 msg.contains("credentials") ->
-                                            context.getString(R.string.error_invalid_credentials)
+                                            resources.getString(R.string.error_invalid_credentials)
 
-                                        else -> e.message ?: context.getString(R.string.error_login_failed)
+                                        else -> resources.getString(R.string.error_login_failed)
                                     }
                                 }
                             )
@@ -335,8 +339,8 @@ fun LoginScreen(navController: NavController) {
             ) {
                 Text(
                     text = stringResource(R.string.pre_register),
-                    color = if (bloqueado) inactiveTextColor else Color(0xFF7A003C),
-                    modifier = Modifier.clickable(enabled = !bloqueado) {
+                    color = if (puedePreregistrar) Color(0xFF7A003C) else inactiveTextColor,
+                    modifier = Modifier.clickable(enabled = puedePreregistrar) {
                         navController.navigate(Routes.PreRegistro)
                     }
                 )
@@ -362,7 +366,8 @@ fun LoginScreen(navController: NavController) {
                         try {
                             estadoSolicitud = estatus.obtenerEstadoSolicitud(context)
                         } catch (e: Exception) {
-                            statusError = e.message ?: context.getString(R.string.error_validate_status)
+                            if (e is CancellationException) throw e
+                            statusError = resources.getString(R.string.error_validate_status)
                             estadoSolicitud = estatus.EstadoSolicitud.NO_EXISTE
                         } finally {
                             checkingStatus = false
