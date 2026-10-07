@@ -141,7 +141,8 @@
     <string name="curp_length_error">Must be 18 characters</string>
     <string name="select_school_error">Select a school</string>
 
-    <string name="schools_load_error">Schools could not be loaded</string>
+    <string name="schools_load_error">Schools could not be loaded. The registration service is unavailable; try again in a few moments.</string>
+    <string name="retry">Retry</string>
     <string name="continue_error_title">Could not continue</string>
 
     <string name="name_label">First name</string>
