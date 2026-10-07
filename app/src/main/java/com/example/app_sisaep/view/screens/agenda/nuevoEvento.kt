@@ -47,7 +47,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -335,9 +334,9 @@ fun NuevoEventoContent(
                             val tIni = parseTimeOrNull(horaInicio)!!
                             val tFin = parseTimeOrNull(horaFin)!!
                             val fEstricta    = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
-                            val zoneOffset   = ZoneId.systemDefault().rules.getOffset(java.time.Instant.now())
-                            val tsInicio     = OffsetDateTime.of(selectedDate, tIni, zoneOffset).toString()
-                            val tsFin        = OffsetDateTime.of(selectedDate, tFin, zoneOffset).toString()
+                            val zonaEvento   = ZoneId.systemDefault()
+                            val tsInicio     = selectedDate.atTime(tIni).atZone(zonaEvento).toOffsetDateTime().toString()
+                            val tsFin        = selectedDate.atTime(tFin).atZone(zonaEvento).toOffsetDateTime().toString()
                             val usuarioId    = try {
                                 SupabaseConnectionApp.client.auth.currentUserOrNull()?.id
                             } catch (_: Exception) { null }

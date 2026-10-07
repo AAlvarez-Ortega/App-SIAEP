@@ -31,7 +31,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.ChatPreviewDto
-import com.example.app_sisaep.model.dto.UsuarioDto
+import com.example.app_sisaep.model.dto.ContactoDto
 import com.example.app_sisaep.model.supabase.SupabaseConnectionApp
 import com.example.app_sisaep.viewModel.consultaas
 import io.github.jan.supabase.realtime.PostgresAction
@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 fun SectionChat(navController: NavController) {
 
     var verContactos by remember { mutableStateOf(false) }
-    var listaContactos by remember { mutableStateOf<List<UsuarioDto>>(emptyList()) }
+    var listaContactos by remember { mutableStateOf<List<ContactoDto>>(emptyList()) }
     var listaConversaciones by remember { mutableStateOf<List<ChatPreviewDto>>(emptyList()) }
     var cargando by remember { mutableStateOf(true) }
 
@@ -56,7 +56,7 @@ fun SectionChat(navController: NavController) {
             val misDatos = consultaas.obtenerMisDatos()
 
             if (misDatos != null) {
-                listaContactos = consultaas.obtenerContactosPorEscuela(misDatos.escuela_cct)
+                listaContactos = consultaas.obtenerContactos()
                 listaConversaciones = consultaas.obtenerMisChatsActivosOrdenados()
             }
         } catch (e: Exception) {
@@ -87,7 +87,7 @@ fun SectionChat(navController: NavController) {
             val misDatos = consultaas.obtenerMisDatos()
 
             if (misDatos != null) {
-                listaContactos = consultaas.obtenerContactosPorEscuela(misDatos.escuela_cct)
+                listaContactos = consultaas.obtenerContactos()
                 listaConversaciones = consultaas.obtenerMisChatsActivosOrdenados()
                 cargando = false
 

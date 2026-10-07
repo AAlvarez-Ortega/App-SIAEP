@@ -22,6 +22,7 @@ object Routes {
     const val Config = "config"
 
     //chat
+    const val Mensajes = "mensajes"
     const val IndividualChat = "chat/{userId}/{userName}"
 
     //perfil de usuario

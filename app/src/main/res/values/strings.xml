@@ -141,7 +141,8 @@
     <string name="curp_length_error">Debe tener 18 caracteres</string>
     <string name="select_school_error">Selecciona una escuela</string>
 
-    <string name="schools_load_error">No se pudieron cargar las escuelas</string>
+    <string name="schools_load_error">No se pudieron cargar las escuelas. El servicio de registro no está disponible; intenta nuevamente en unos momentos.</string>
+    <string name="retry">Reintentar</string>
     <string name="continue_error_title">No se pudo continuar</string>
 
     <string name="name_label">Nombre</string>
