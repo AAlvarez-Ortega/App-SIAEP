@@ -11,6 +11,7 @@ plugins {
 android {
     namespace = "com.example.app_sisaep"
     compileSdk = 36
+    buildToolsVersion = "36.0.0"
 
     defaultConfig {
         applicationId = "com.example.app_sisaep"
@@ -74,10 +75,10 @@ dependencies {
     // Supabase
     implementation(libs.supabase.kt)
     implementation(libs.androidx.datastore.preferences)
-    implementation("io.github.jan-tennert.supabase:postgrest-kt:2.5.0")
-    implementation("io.github.jan-tennert.supabase:gotrue-kt:2.5.0")
-    implementation("io.github.jan-tennert.supabase:realtime-kt:2.5.0")
-    implementation("io.github.jan-tennert.supabase:storage-kt:2.5.0")
+    implementation(libs.postgrest.kt)
+    implementation(libs.gotrue.kt)
+    implementation(libs.realtime.kt)
+    implementation(libs.storage.kt)
 
     // Ktor (solo 1 engine)
     implementation(libs.ktor.client.okhttp)
