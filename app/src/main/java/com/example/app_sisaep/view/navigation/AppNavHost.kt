@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import com.example.app_sisaep.view.screens.*
 import com.example.app_sisaep.view.screens.clases.TablonClaseScreen
 import com.example.app_sisaep.view.screens.clases.sectionChat.IndividualChatScreen
+import com.example.app_sisaep.view.screens.clases.sectionChat.MensajesScreen
 import com.example.app_sisaep.view.screens.perfilUsuario.PerfilUsuarioScreen
 
 @Composable
@@ -45,6 +46,10 @@ fun AppNavHost(
 
         composable(Routes.Clases) {
             ClasesScreen(navController = navController)
+        }
+
+        composable(Routes.Mensajes) {
+            MensajesScreen(navController = navController)
         }
 
         composable(Routes.GenerarQR) {
