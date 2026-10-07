@@ -162,6 +162,12 @@ fun ClasesScreen(navController: NavController) {
                 }
             }
 
+            TextButton(onClick = { navController.navigate(Routes.Mensajes) }) {
+                Icon(Icons.Rounded.Chat, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.messages))
+            }
+
             // ── Cuerpo ────────────────────────────────────────────────────────
             when {
                 isLoading -> {
