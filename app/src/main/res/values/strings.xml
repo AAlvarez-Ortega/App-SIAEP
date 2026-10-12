@@ -250,8 +250,10 @@
     <string name="school_cct">CCT Escuela</string>
     <string name="full_name">Nombre Completo</string>
     <string name="student">Alumno</string>
-    <string name="teacher">Docente</string>
-    <string name="administrator">Administrador</string>
+    <string name="teacher">Maestro</string>
+    <string name="school_director">Director de escuela</string>
+    <string name="administrator">Administrador de la aplicación</string>
+    <string name="unknown_role">Rol no reconocido</string>
 
     <string name="could_not_load_data">No se pudieron cargar los datos</string>
     <string name="user">Usuario</string>

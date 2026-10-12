@@ -1,6 +1,7 @@
 package com.example.app_sisaep.viewModel
 
 import android.util.Log
+import com.example.app_sisaep.model.RolUsuario
 import com.example.app_sisaep.model.dto.AvisoGlobal
 import com.example.app_sisaep.model.dto.ChatPreviewDto
 import com.example.app_sisaep.model.dto.ConversacionDto
@@ -267,7 +268,11 @@ object consultaas {
                     return@withContext emptyList()
                 }
 
-                val esProfesor = usuario.id_tipo_usuario == 2
+                val rol = RolUsuario.desdeId(usuario.id_tipo_usuario)
+                if (rol != RolUsuario.ALUMNO && rol != RolUsuario.MAESTRO) {
+                    return@withContext emptyList()
+                }
+                val esProfesor = rol == RolUsuario.MAESTRO
                 val clientPostgrest = SupabaseConnectionApp.client.postgrest
 
                 if (esProfesor) {

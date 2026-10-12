@@ -15,16 +15,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.UsuarioDto
+import com.example.app_sisaep.model.RolUsuario
 
 
 @Composable
 fun DatosPerfilDeUsuario(usuario: UsuarioDto) {
-    // 1. Nueva lógica de identificación basada en el ID numérico
-    val tipoUsuarioTexto = when (usuario.id_tipo_usuario) {
-        1 -> stringResource(R.string.student)       // Alumno
-        2 -> stringResource(R.string.teacher)       // Profesor
-        3 -> stringResource(R.string.administrator) // Administrativo
-        else -> "Usuario"                           // Caso genérico
+    val tipoUsuarioTexto = when (RolUsuario.desdeId(usuario.id_tipo_usuario)) {
+        RolUsuario.ALUMNO -> stringResource(R.string.student)
+        RolUsuario.MAESTRO -> stringResource(R.string.teacher)
+        RolUsuario.DIRECTOR_ESCUELA -> stringResource(R.string.school_director)
+        RolUsuario.ADMINISTRADOR_APLICACION -> stringResource(R.string.administrator)
+        null -> stringResource(R.string.unknown_role)
     }
 
     Column(

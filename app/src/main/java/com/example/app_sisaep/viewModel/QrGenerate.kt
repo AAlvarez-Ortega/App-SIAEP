@@ -5,6 +5,7 @@ import android.graphics.Color
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
+import com.example.app_sisaep.model.RolUsuario
 import kotlinx.coroutines.delay
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -15,11 +16,7 @@ import java.time.format.DateTimeFormatter
 object QrGenerate {
 
     fun buildPayload(userId: String, idTipoUsuario: Int): String {
-        val rolTexto = when (idTipoUsuario) {
-            1 -> "ALUMNO"
-            2 -> "PROFESOR"
-            else -> "USUARIO"
-        }
+        val rolTexto = RolUsuario.desdeId(idTipoUsuario)?.codigoQr ?: "USUARIO"
 
         val now = OffsetDateTime.now(ZoneId.of("America/Mexico_City"))
         val timestamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
