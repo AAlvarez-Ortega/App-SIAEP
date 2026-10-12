@@ -250,7 +250,9 @@
     <string name="full_name">Full Name</string>
     <string name="student">Student</string>
     <string name="teacher">Teacher</string>
-    <string name="administrator">Administrator</string>
+    <string name="school_director">School director</string>
+    <string name="administrator">Application administrator</string>
+    <string name="unknown_role">Unrecognized role</string>
 
     <string name="could_not_load_data">Could not load the data</string>
     <string name="user">User</string>
