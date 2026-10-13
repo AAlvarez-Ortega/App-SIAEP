@@ -28,4 +28,23 @@ class ActivacionCuentaTest {
         assertNotNull(ActivacionCuenta.errorPassword("12345678910", "12345678911"))
         assertNull(ActivacionCuenta.errorPassword("12345678910", "12345678910"))
     }
+
+    @Test fun otpRequiresSixAsciiDigits() {
+        assertNull(ActivacionCuenta.errorCodigo("123456"))
+        assertNull(ActivacionCuenta.errorCodigo(" 123456 "))
+        for (bad in listOf("", "12345", "1234567", "abc123", "１２３４５６")) {
+            assertNotNull(ActivacionCuenta.errorCodigo(bad))
+        }
+    }
+
+    @Test fun usedCodeGuidesExistingAccountsToLogin() {
+        val text = ActivacionCuenta.mensajeError(IllegalStateException("otp_expired: Token has expired"))
+        assertTrue(text.contains("ya se usó"))
+        assertTrue(text.contains("Si ya confirmaste"))
+    }
+
+    @Test fun smtpAndIdentityErrorsAreDifferent() {
+        assertTrue(ActivacionCuenta.mensajeError(IllegalStateException("email_address_not_authorized")).contains("SMTP"))
+        assertTrue(ActivacionCuenta.mensajeError(IllegalStateException("IDENTIDAD_NO_VALIDADA_EN_PADRON")).contains("registro aprobado"))
+    }
 }
