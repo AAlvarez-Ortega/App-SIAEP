@@ -29,11 +29,13 @@ import androidx.navigation.NavController
 import com.example.app_sisaep.R
 import com.example.app_sisaep.model.dto.EscuelaDto
 import com.example.app_sisaep.model.dto.SolicitudInsertDto
+import com.example.app_sisaep.model.dto.SolicitudPropiaDto
 import com.example.app_sisaep.view.navigation.Routes
 import com.example.app_sisaep.viewModel.consultaas
 import com.example.app_sisaep.viewModel.estatus
 import com.example.app_sisaep.viewModel.RegistroApp
 import com.example.app_sisaep.viewModel.SolicitudDuplicadaException
+import com.example.app_sisaep.viewModel.SolicitudCambioException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -72,7 +74,10 @@ fun PreRegistroScreen(navController: NavController) {
     var escuelas by remember { mutableStateOf<List<EscuelaDto>>(emptyList()) }
     var escuelaSeleccionada by remember { mutableStateOf<EscuelaDto?>(null) }
     var expanded by remember { mutableStateOf(false) }
-    val comprobante = remember { RegistroApp.nuevoComprobante() }
+    val comprobante = remember { estatus.obtenerComprobante(context) ?: RegistroApp.nuevoComprobante() }
+    var solicitudActual by remember { mutableStateOf<SolicitudPropiaDto?>(null) }
+    var requestLoadFailed by remember { mutableStateOf(false) }
+    var solicitudNoEditable by remember { mutableStateOf(false) }
 
     var nombre by remember { mutableStateOf("") }
     var apellidoPaterno by remember { mutableStateOf("") }
@@ -185,12 +190,29 @@ fun PreRegistroScreen(navController: NavController) {
     suspend fun cargarEscuelas() {
         loading = true
         schoolsLoadFailed = false
+        requestLoadFailed = false
         try {
             escuelas = consultaas.getEscuelas()
             schoolsLoadFailed = escuelas.isEmpty()
+            if (estatus.obtenerComprobante(context) != null) {
+                val propia = RegistroApp.propia(comprobante)
+                solicitudActual = propia
+                if (propia != null) {
+                    nombre = propia.datos.nombre
+                    apellidoPaterno = propia.datos.apellidoPaterno
+                    apellidoMaterno = propia.datos.apellidoMaterno
+                    boletaOEmpleado = propia.datos.boletaOEmpleado
+                    correo = propia.datos.correo
+                    curp = propia.datos.curp
+                    escuelaSeleccionada = escuelas.find { it.id == propia.datos.escuelaId }
+                    solicitudNoEditable = propia.estado == "Aceptado"
+                    errorMessage = if (solicitudNoEditable) resources.getString(R.string.request_already_accepted) else null
+                }
+            }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            schoolsLoadFailed = true
+            requestLoadFailed = true
+            errorMessage = resources.getString(R.string.request_load_error)
         } finally {
             loading = false
         }
@@ -241,7 +263,11 @@ fun PreRegistroScreen(navController: NavController) {
             Spacer(Modifier.height(6.dp))
 
             Text(
-                text = stringResource(R.string.access_request_description),
+                text = stringResource(when (solicitudActual?.estado) {
+                    "Pendiente" -> R.string.edit_request_description
+                    "Rechazado" -> R.string.retry_request_description
+                    else -> R.string.access_request_description
+                }),
                 style = MaterialTheme.typography.bodyMedium,
                 color = secondaryTextColor
             )
@@ -280,7 +306,7 @@ fun PreRegistroScreen(navController: NavController) {
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(it, color = Color(0xFF7A1A2E))
-                        if (schoolsLoadFailed) {
+                        if (schoolsLoadFailed || requestLoadFailed) {
                             TextButton(
                                 enabled = !loading && !sending,
                                 onClick = { scope.launch { cargarEscuelas() } }
@@ -327,6 +353,7 @@ fun PreRegistroScreen(navController: NavController) {
                             Step.Personal -> {
                                 Column {
                                     OutlinedTextField(
+                                        enabled = !loading && !sending && !requestLoadFailed && !solicitudNoEditable,
                                         value = nombre,
                                         onValueChange = {
                                             nombre = it.uppercase()
@@ -349,6 +376,7 @@ fun PreRegistroScreen(navController: NavController) {
                                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
                                         OutlinedTextField(
+                                        enabled = !loading && !sending && !requestLoadFailed && !solicitudNoEditable,
                                             value = apellidoPaterno,
                                             onValueChange = {
                                                 apellidoPaterno = it.uppercase()
@@ -364,6 +392,7 @@ fun PreRegistroScreen(navController: NavController) {
                                         )
 
                                         OutlinedTextField(
+                                        enabled = !loading && !sending && !requestLoadFailed && !solicitudNoEditable,
                                             value = apellidoMaterno,
                                             onValueChange = {
                                                 apellidoMaterno = it.uppercase()
@@ -382,6 +411,7 @@ fun PreRegistroScreen(navController: NavController) {
                                     Spacer(Modifier.height(10.dp))
 
                                     OutlinedTextField(
+                                        enabled = !loading && !sending && !requestLoadFailed && !solicitudNoEditable,
                                         value = boletaOEmpleado,
                                         onValueChange = { input ->
                                             boletaOEmpleado = input.filter { it.isDigit() }.take(10)
@@ -409,6 +439,7 @@ fun PreRegistroScreen(navController: NavController) {
                             Step.Contacto -> {
                                 Column {
                                     OutlinedTextField(
+                                        enabled = !loading && !sending && !requestLoadFailed && !solicitudNoEditable,
                                         value = correo,
                                         onValueChange = {
                                             correo = it
@@ -429,6 +460,7 @@ fun PreRegistroScreen(navController: NavController) {
                                     Spacer(Modifier.height(10.dp))
 
                                     OutlinedTextField(
+                                        enabled = !loading && !sending && !requestLoadFailed && !solicitudNoEditable,
                                         value = curp,
                                         onValueChange = {
                                             curp = it.uppercase()
@@ -458,6 +490,7 @@ fun PreRegistroScreen(navController: NavController) {
                                         onExpandedChange = { if (!loading) expanded = !expanded }
                                     ) {
                                         OutlinedTextField(
+                                        enabled = !loading && !sending && !requestLoadFailed && !solicitudNoEditable,
                                             value = escuelaSeleccionada?.let {
                                                 "${it.nombre}${if (it.siglas.isNullOrBlank()) "" else " (${it.siglas})"}"
                                             } ?: "",
@@ -514,8 +547,13 @@ fun PreRegistroScreen(navController: NavController) {
 
                     WizardFooter(
                         currentStep = currentStep,
-                        loading = loading,
+                        loading = loading || schoolsLoadFailed || requestLoadFailed || solicitudNoEditable,
                         sending = sending,
+                        submitLabel = stringResource(when (solicitudActual?.estado) {
+                            "Rechazado" -> R.string.resubmit_request_button
+                            "Pendiente" -> R.string.save_request_button
+                            else -> R.string.submit_request_button
+                        }),
                         onBack = { prevStep() },
                         onNext = {
                             val ok = validateStep(currentStep)
@@ -526,7 +564,7 @@ fun PreRegistroScreen(navController: NavController) {
                             val okContacto = validateStep(Step.Contacto)
                             val okEscuela = validateStep(Step.Escuela)
 
-                            if (!(okPersonal && okContacto && okEscuela)) return@WizardFooter
+                            if (!(okPersonal && okContacto && okEscuela) || loading || requestLoadFailed || solicitudNoEditable) return@WizardFooter
 
                             sending = true
                             errorMessage = null
@@ -547,21 +585,27 @@ fun PreRegistroScreen(navController: NavController) {
                                     // Guardar el comprobante antes de enviar permite recuperar
                                     // el estado si el servidor acepta pero se pierde la respuesta.
                                     estatus.guardarSolicitudPendiente(context, comprobante)
-                                    consultaas.insertarSolicitud(payload, comprobante)
+                                    val anterior = solicitudActual
+                                    if (anterior == null) consultaas.insertarSolicitud(payload, comprobante)
+                                    else RegistroApp.corregir(payload, comprobante, anterior.version)
 
                                     navController.navigate(Routes.Login) {
-                                        popUpTo(Routes.PreRegistro) { inclusive = true }
+                                        popUpTo(Routes.Login) { inclusive = true }
                                         launchSingleTop = true
                                     }
                                 } catch (e: Exception) {
                                     if (e is CancellationException) throw e
+                                    if (e is SolicitudCambioException) requestLoadFailed = true
                                     if (e is SolicitudDuplicadaException) {
                                         if (comprobanteAnterior == null) estatus.limpiarSolicitudPendiente(context)
                                         else estatus.guardarSolicitudPendiente(context, comprobanteAnterior)
                                     }
                                     errorMessage = resources.getString(
-                                        if (e is SolicitudDuplicadaException) R.string.duplicate_request_error
-                                        else R.string.submit_request_error
+                                        when (e) {
+                                            is SolicitudDuplicadaException -> R.string.duplicate_request_error
+                                            is SolicitudCambioException -> R.string.request_changed_error
+                                            else -> R.string.submit_request_error
+                                        }
                                     )
                                 } finally {
                                     sending = false
@@ -582,7 +626,7 @@ fun PreRegistroScreen(navController: NavController) {
                     text = stringResource(R.string.back_to_login),
                     color = Guinda,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.clickable { navController.popBackStack() }
+                    modifier = Modifier.clickable(enabled = !sending) { navController.popBackStack() }
                 )
             }
 
@@ -678,6 +722,7 @@ private fun WizardFooter(
     currentStep: Step,
     loading: Boolean,
     sending: Boolean,
+    submitLabel: String,
     onBack: () -> Unit,
     onNext: () -> Unit,
     onSubmit: () -> Unit
@@ -734,7 +779,7 @@ private fun WizardFooter(
                     )
                 } else {
                     Text(
-                        text = stringResource(R.string.submit_request_button),
+                        text = submitLabel,
                         color = Color.White,
                         fontWeight = FontWeight.SemiBold
                     )
