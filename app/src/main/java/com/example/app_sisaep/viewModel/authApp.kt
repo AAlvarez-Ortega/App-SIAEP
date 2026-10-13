@@ -11,19 +11,36 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import io.github.jan.supabase.gotrue.OtpType
 
 object AuthApp {
 
-    suspend fun activarCuenta(solicitud: SolicitudPropiaDto, password: String): Result<Unit> = try {
+    suspend fun activarCuenta(solicitud: SolicitudPropiaDto, password: String): Result<Unit> = operacionRegistro {
         val metadata = ActivacionCuenta.metadatos(solicitud)
         require(password.length >= 8)
-        withTimeout(20_000L) {
-            SupabaseConnectionApp.client.auth.signUpWith(Email) {
-                email = solicitud.datos.correo
-                this.password = password
-                data = metadata
-            }
+        SupabaseConnectionApp.client.auth.signUpWith(Email) {
+            email = solicitud.datos.correo
+            this.password = password
+            data = metadata
         }
+    }
+
+    suspend fun confirmarCorreo(solicitud: SolicitudPropiaDto, codigo: String): Result<Unit> = operacionRegistro {
+        ActivacionCuenta.metadatos(solicitud)
+        require(ActivacionCuenta.errorCodigo(codigo) == null)
+        val email = solicitud.datos.correo.trim().lowercase()
+        SupabaseConnectionApp.client.auth.verifyEmailOtp(OtpType.Email.EMAIL, email, codigo.trim())
+        val user = SupabaseConnectionApp.client.auth.currentUserOrNull()
+        check(user?.emailConfirmedAt != null && user.email?.lowercase() == email) { "CORREO_NO_CONFIRMADO" }
+    }
+
+    suspend fun reenviarConfirmacion(solicitud: SolicitudPropiaDto): Result<Unit> = operacionRegistro {
+        ActivacionCuenta.metadatos(solicitud)
+        SupabaseConnectionApp.client.auth.resendEmail(OtpType.Email.SIGNUP, solicitud.datos.correo.trim().lowercase())
+    }
+
+    private suspend fun operacionRegistro(block: suspend () -> Unit): Result<Unit> = try {
+        withTimeout(20_000L) { block() }
         Result.success(Unit)
     } catch (e: Exception) {
         if (e is TimeoutCancellationException) {
