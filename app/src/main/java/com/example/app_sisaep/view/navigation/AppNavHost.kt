@@ -32,6 +32,10 @@ fun AppNavHost(
             PreRegistroScreen(navController = navController)
         }
 
+        composable(Routes.ActivarCuenta) {
+            ActivarCuentaScreen(navController = navController)
+        }
+
         composable(Routes.Home) {
             HomeScreen(navController = navController)
         }

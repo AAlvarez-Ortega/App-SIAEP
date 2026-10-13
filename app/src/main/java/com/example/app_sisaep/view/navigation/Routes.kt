@@ -7,6 +7,7 @@ object Routes {
     // Auth
     const val Login = "login"
     const val PreRegistro = "preregistro"
+    const val ActivarCuenta = "activar_cuenta"
 
     // Principales
     const val Home = "home"

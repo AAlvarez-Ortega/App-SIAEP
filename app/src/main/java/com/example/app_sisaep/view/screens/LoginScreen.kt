@@ -171,6 +171,14 @@ fun LoginScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
+                estatus.EstadoSolicitud.ACEPTADO -> {
+                    Text("Tu solicitud fue aprobada. Si aún no tienes cuenta, actívala para elegir tu contraseña.")
+                    TextButton(
+                        enabled = !bloqueado && statusError == null,
+                        onClick = { navController.navigate(Routes.ActivarCuenta) }
+                    ) { Text("Activar mi cuenta") }
+                }
+
                 else -> Unit
             }
 

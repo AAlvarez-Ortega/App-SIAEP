@@ -5,8 +5,35 @@ import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.gotrue.user.UserInfo
 import io.github.jan.supabase.gotrue.user.UserSession
+import com.example.app_sisaep.model.dto.SolicitudPropiaDto
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 object AuthApp {
+
+    suspend fun activarCuenta(solicitud: SolicitudPropiaDto, password: String): Result<Unit> = try {
+        val metadata = ActivacionCuenta.metadatos(solicitud)
+        require(password.length >= 8)
+        withTimeout(20_000L) {
+            SupabaseConnectionApp.client.auth.signUpWith(Email) {
+                email = solicitud.datos.correo
+                this.password = password
+                data = metadata
+            }
+        }
+        Result.success(Unit)
+    } catch (e: Exception) {
+        if (e is TimeoutCancellationException) {
+            currentCoroutineContext().ensureActive()
+            Result.failure(java.io.IOException("Tiempo de activación agotado", e))
+        } else {
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
 
     /**
      * Inicia sesión con email + password.
