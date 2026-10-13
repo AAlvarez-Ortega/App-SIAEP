@@ -78,8 +78,7 @@ fun LoginScreen(navController: NavController) {
     // Auth valida el acceso. Una solicitud local no impide usar una cuenta existente.
     val bloqueado = checkingStatus || isLoggingIn
     val puedePreregistrar = !bloqueado && statusError == null &&
-        estadoSolicitud != estatus.EstadoSolicitud.PENDIENTE &&
-        estadoSolicitud != estatus.EstadoSolicitud.RECHAZADO
+        estadoSolicitud != estatus.EstadoSolicitud.ACEPTADO
 
     val backgroundColor = MaterialTheme.colorScheme.background
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
@@ -338,7 +337,11 @@ fun LoginScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.pre_register),
+                    text = stringResource(when (estadoSolicitud) {
+                        estatus.EstadoSolicitud.PENDIENTE -> R.string.edit_request
+                        estatus.EstadoSolicitud.RECHAZADO -> R.string.retry_rejected_request
+                        else -> R.string.pre_register
+                    }),
                     color = if (puedePreregistrar) Color(0xFF7A003C) else inactiveTextColor,
                     modifier = Modifier.clickable(enabled = puedePreregistrar) {
                         navController.navigate(Routes.PreRegistro)
