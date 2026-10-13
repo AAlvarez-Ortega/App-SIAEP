@@ -113,9 +113,9 @@
     <string name="refresh_status">Actualizar estatus</string>
     <string name="checking_status">Verificando estatus.</string>
     <string name="request_in_process">Solicitud en proceso</string>
-    <string name="preregister_sent_message">Tu pre-registro ya fue enviado. Cuando sea validado podrás iniciar sesión.</string>
+    <string name="preregister_sent_message">Tu solicitud está pendiente de revisión. Puedes corregir los datos mientras no haya sido aceptada.</string>
     <string name="request_rejected">Solicitud rechazada</string>
-    <string name="request_rejected_message">Solicitud rechazada, ponte en contacto con soporte técnico.</string>
+    <string name="request_rejected_message">Puedes corregir tus datos y reenviar la solicitud desde esta pantalla.</string>
     <string name="error_valid_email">Ingresa un correo válido.</string>
     <string name="error_enter_password">Ingresa tu contraseña.</string>
     <string name="error_email_not_confirmed">Tu correo aún no está confirmado. Revisa tu email y confirma tu cuenta.</string>
@@ -257,4 +257,13 @@
 
     <string name="could_not_load_data">No se pudieron cargar los datos</string>
     <string name="user">Usuario</string>
+    <string name="edit_request">Corregir solicitud</string>
+    <string name="retry_rejected_request">Corregir y reenviar</string>
+    <string name="edit_request_description">Corrige los datos de tu solicitud pendiente y guarda los cambios. El responsable revisará la versión actualizada.</string>
+    <string name="retry_request_description">Tu solicitud fue rechazada. Revisa y corrige los datos antes de enviarla nuevamente a revisión.</string>
+    <string name="save_request_button">Guardar cambios</string>
+    <string name="resubmit_request_button">Reenviar solicitud</string>
+    <string name="request_load_error">No se pudo recuperar tu solicitud. Pulsa Reintentar para cargar tus datos antes de modificarlos.</string>
+    <string name="request_changed_error">La solicitud cambió durante la edición. Pulsa Reintentar para cargar su estado y datos actuales.</string>
+    <string name="request_already_accepted">Tu solicitud ya está aceptada. Inicia sesión con tu cuenta; los datos aprobados no se pueden modificar desde el preregistro.</string>
 </resources>
