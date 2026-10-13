@@ -113,9 +113,9 @@
     <string name="refresh_status">Refresh status</string>
     <string name="checking_status">Checking status.</string>
     <string name="request_in_process">Request in process</string>
-    <string name="preregister_sent_message">Your pre-registration has already been sent. Once it is validated, you will be able to sign in.</string>
+    <string name="preregister_sent_message">Your request is pending review. You can correct its information until it has been accepted.</string>
     <string name="request_rejected">Request rejected</string>
-    <string name="request_rejected_message">Request rejected, please contact technical support.</string>
+    <string name="request_rejected_message">You can correct your information and resubmit the request from this screen.</string>
     <string name="error_valid_email">Enter a valid email.</string>
     <string name="error_enter_password">Enter your password.</string>
     <string name="error_email_not_confirmed">Your email is not confirmed yet. Check your inbox and confirm your account.</string>
@@ -256,4 +256,13 @@
 
     <string name="could_not_load_data">Could not load the data</string>
     <string name="user">User</string>
+    <string name="edit_request">Edit request</string>
+    <string name="retry_rejected_request">Correct and resubmit</string>
+    <string name="edit_request_description">Correct your pending request and save the changes. The administrator will review the updated information.</string>
+    <string name="retry_request_description">Your request was rejected. Review and correct your information before submitting it again.</string>
+    <string name="save_request_button">Save changes</string>
+    <string name="resubmit_request_button">Resubmit request</string>
+    <string name="request_load_error">Your request could not be loaded. Tap Retry to retrieve your information before editing.</string>
+    <string name="request_changed_error">The request changed while you were editing. Tap Retry to load its current information and status.</string>
+    <string name="request_already_accepted">Your request is already accepted. Sign in with your account. Approved information cannot be changed from pre-registration.</string>
 </resources>
