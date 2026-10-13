@@ -42,8 +42,8 @@ object estatus {
     /**
      * Retorna el estado real de la solicitud:
      * - ACEPTADO: desbloquea
-     * - PENDIENTE: bloquea
-     * - RECHAZADO: bloquea y muestra aviso
+     * - PENDIENTE: permite corregir con el comprobante guardado
+     * - RECHAZADO: permite corregir y reenviar con el comprobante guardado
      * - NO_EXISTE: limpia el id guardado y desbloquea
      */
     suspend fun obtenerEstadoSolicitud(context: Context): EstadoSolicitud {
