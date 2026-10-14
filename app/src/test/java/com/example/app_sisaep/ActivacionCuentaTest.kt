@@ -29,10 +29,11 @@ class ActivacionCuentaTest {
         assertNull(ActivacionCuenta.errorPassword("12345678910", "12345678910"))
     }
 
-    @Test fun otpRequiresSixAsciiDigits() {
+    @Test fun otpAcceptsConfiguredLengthWithoutDroppingDigits() {
         assertNull(ActivacionCuenta.errorCodigo("123456"))
-        assertNull(ActivacionCuenta.errorCodigo(" 123456 "))
-        for (bad in listOf("", "12345", "1234567", "abc123", "１２３４５６")) {
+        assertNull(ActivacionCuenta.errorCodigo(" 12345678 "))
+        assertNull(ActivacionCuenta.errorCodigo("1234567890"))
+        for (bad in listOf("", "12345", "00000000000", "abc123", "１２３４５６７８")) {
             assertNotNull(ActivacionCuenta.errorCodigo(bad))
         }
     }
