@@ -105,8 +105,8 @@ fun ActivarCuentaScreen(navController: NavController) {
                         password = ""; confirmacion = ""; error = null; enviado = true
                     }) { Text("Ya tengo un código de confirmación") }
                 } else {
-                    Text("Revisa tu correo y escribe el código de seis dígitos más reciente. Si ya confirmaste tu correo, vuelve al inicio y usa tu contraseña; no necesitas verificarlo otra vez.")
-                    OutlinedTextField(value = codigo, onValueChange = { codigo = it.filter { c -> c in '0'..'9' }.take(6) },
+                    Text("Revisa tu correo y escribe completo el código más reciente. Si ya confirmaste tu correo, vuelve al inicio y usa tu contraseña; no necesitas verificarlo otra vez.")
+                    OutlinedTextField(value = codigo, onValueChange = { codigo = it.filter { c -> c in '0'..'9' }.take(10) },
                         label = { Text("Código de confirmación") }, enabled = !enviando, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth())
