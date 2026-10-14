@@ -23,8 +23,8 @@ object ActivacionCuenta {
         else -> null
     }
 
-    fun errorCodigo(codigo: String): String? = if (Regex("^[0-9]{6}$").matches(codigo.trim())) null
-        else "Escribe el código de seis dígitos que recibiste por correo."
+    fun errorCodigo(codigo: String): String? = if (Regex("^[0-9]{6,10}$").matches(codigo.trim())) null
+        else "Escribe el código numérico completo que recibiste por correo."
 
     fun mensajeError(error: Throwable): String {
         val msg = error.message.orEmpty().lowercase()
